@@ -1866,10 +1866,582 @@
           }
         }
       }
+    },
+    "/api/purchases": {
+      "get": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfPurchaseSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Purchases"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/purchases/{id}": {
+      "get": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/purchases/{id}/attachment": {
+      "get": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Purchases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/reports/sales": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "cashierId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SalesReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/purchases": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchasesReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/profit-loss": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfitLossDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/vat": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VatReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/admin": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDashboardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/cashier": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierDashboardDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AdminDashboardDto": {
+        "required": [
+          "period",
+          "sales",
+          "purchases",
+          "netProfit",
+          "outputVat",
+          "inputVat",
+          "openInvoiceCount",
+          "openInvoiceBalance",
+          "openQuotationCount",
+          "lowStockCount",
+          "lowStockItems",
+          "monthly",
+          "recentInvoices"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "sales": {
+            "type": "number",
+            "format": "double"
+          },
+          "purchases": {
+            "type": "number",
+            "format": "double"
+          },
+          "netProfit": {
+            "type": "number",
+            "format": "double"
+          },
+          "outputVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "inputVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "openInvoiceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openInvoiceBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "openQuotationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lowStockCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lowStockItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemDto"
+            }
+          },
+          "monthly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyTotals"
+            }
+          },
+          "recentInvoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentInvoiceDto"
+            }
+          }
+        }
+      },
       "AuthResponse": {
         "required": [
           "accessToken",
@@ -1894,6 +2466,40 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "CashierDashboardDto": {
+        "required": [
+          "today",
+          "shiftInvoiceCount",
+          "shiftSalesNet",
+          "shiftSalesTotal",
+          "recentInvoices"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "shiftInvoiceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shiftSalesNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "shiftSalesTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "recentInvoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentInvoiceDto"
+            }
           }
         }
       },
@@ -2485,6 +3091,22 @@
           "Fujairah"
         ]
       },
+      "ExpenseLine": {
+        "required": [
+          "category",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "HealthResponse": {
         "required": [
           "status"
@@ -2966,6 +3588,53 @@
           }
         }
       },
+      "MonthlyProfit": {
+        "required": [
+          "month",
+          "sales",
+          "purchases",
+          "profit"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "sales": {
+            "type": "number",
+            "format": "double"
+          },
+          "purchases": {
+            "type": "number",
+            "format": "double"
+          },
+          "profit": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MonthlyTotals": {
+        "required": [
+          "month",
+          "sales",
+          "purchases"
+        ],
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "sales": {
+            "type": "number",
+            "format": "double"
+          },
+          "purchases": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "NumberingDto": {
         "required": [
           "documentType",
@@ -3089,6 +3758,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfPurchaseSummaryDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseSummaryDto"
             }
           },
           "total": {
@@ -3291,6 +3989,461 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ProfitLossDto": {
+        "required": [
+          "period",
+          "sales",
+          "creditNotes",
+          "netSales",
+          "inventoryPurchases",
+          "expenses",
+          "totalPurchases",
+          "netProfit",
+          "monthly"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "sales": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditNotes": {
+            "type": "number",
+            "format": "double"
+          },
+          "netSales": {
+            "type": "number",
+            "format": "double"
+          },
+          "inventoryPurchases": {
+            "type": "number",
+            "format": "double"
+          },
+          "expenses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseLine"
+            }
+          },
+          "totalPurchases": {
+            "type": "number",
+            "format": "double"
+          },
+          "netProfit": {
+            "type": "number",
+            "format": "double"
+          },
+          "monthly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyProfit"
+            }
+          }
+        },
+        "description": "BRD §3.7: Profit = Sales − Purchases/costs, all excluding VAT."
+      },
+      "PurchaseDto": {
+        "required": [
+          "id",
+          "number",
+          "supplierInvoiceNo",
+          "date",
+          "supplierId",
+          "supplier",
+          "notes",
+          "subTotal",
+          "vatTotal",
+          "total",
+          "hasAttachment",
+          "attachmentFileName",
+          "createdAt",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "supplierInvoiceNo": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "supplierId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/PartyDto"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "hasAttachment": {
+            "type": "boolean"
+          },
+          "attachmentFileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseLineDto"
+            }
+          }
+        }
+      },
+      "PurchaseLineDto": {
+        "required": [
+          "id",
+          "lineNo",
+          "itemId",
+          "description",
+          "expenseCategory",
+          "quantity",
+          "unitPrice",
+          "taxCategory",
+          "vatRate",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "expenseCategory": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PurchaseLineRequest": {
+        "required": [
+          "itemId",
+          "description",
+          "expenseCategory",
+          "quantity",
+          "unitPrice",
+          "taxCategory"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "expenseCategory": {
+            "maxLength": 100,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          }
+        },
+        "description": "A purchase line: an item (adds stock at this unit cost) or an expense with a free-text category."
+      },
+      "PurchaseReportRow": {
+        "required": [
+          "id",
+          "number",
+          "supplierInvoiceNo",
+          "date",
+          "supplierName",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "supplierInvoiceNo": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PurchaseRequest": {
+        "required": [
+          "supplierId",
+          "supplierInvoiceNo",
+          "date",
+          "notes",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierInvoiceNo": {
+            "maxLength": 60,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseLineRequest"
+            }
+          }
+        }
+      },
+      "PurchasesBySupplier": {
+        "required": [
+          "supplierId",
+          "supplierName",
+          "count",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PurchasesReportDto": {
+        "required": [
+          "period",
+          "count",
+          "net",
+          "vat",
+          "total",
+          "bySupplier",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "bySupplier": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchasesBySupplier"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseReportRow"
+            }
+          }
+        }
+      },
+      "PurchaseSummaryDto": {
+        "required": [
+          "id",
+          "number",
+          "supplierInvoiceNo",
+          "date",
+          "supplierId",
+          "supplierName",
+          "subTotal",
+          "vatTotal",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "supplierInvoiceNo": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "supplierId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -3518,6 +4671,45 @@
           }
         }
       },
+      "RecentInvoiceDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "clientName",
+          "total",
+          "balance",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InvoiceStatus"
+          }
+        }
+      },
       "RefreshRequest": {
         "required": [
           "refreshToken"
@@ -3532,6 +4724,23 @@
           }
         }
       },
+      "ReportPeriod": {
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "ResetPasswordRequest": {
         "required": [
           "newPassword"
@@ -3542,6 +4751,188 @@
             "maxLength": 128,
             "minLength": 8,
             "type": "string"
+          }
+        }
+      },
+      "SalesByCashier": {
+        "required": [
+          "cashierId",
+          "cashierName",
+          "invoiceCount",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "cashierId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cashierName": {
+            "type": "string"
+          },
+          "invoiceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SalesDocumentKind": {
+        "enum": [
+          "Invoice",
+          "CreditNote"
+        ]
+      },
+      "SalesReportDto": {
+        "required": [
+          "period",
+          "summary",
+          "byCashier",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/SalesSummary"
+          },
+          "byCashier": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesByCashier"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesReportRow"
+            }
+          }
+        }
+      },
+      "SalesReportRow": {
+        "required": [
+          "kind",
+          "id",
+          "number",
+          "date",
+          "clientName",
+          "cashierName",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/SalesDocumentKind"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "cashierName": {
+            "type": "string"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "One sales document; credit notes carry negative amounts so rows sum to net sales."
+      },
+      "SalesSummary": {
+        "required": [
+          "invoiceCount",
+          "invoicesNet",
+          "invoicesVat",
+          "invoicesTotal",
+          "creditNoteCount",
+          "creditNotesNet",
+          "creditNotesVat",
+          "creditNotesTotal",
+          "netSales",
+          "netVat",
+          "netTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invoicesNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoicesVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "invoicesTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditNoteCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "creditNotesNet": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditNotesVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditNotesTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "netSales": {
+            "type": "number",
+            "format": "double"
+          },
+          "netVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "netTotal": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -4079,6 +5470,69 @@
           }
         }
       },
+      "VatBox": {
+        "required": [
+          "box",
+          "label",
+          "amount",
+          "vat"
+        ],
+        "type": "object",
+        "properties": {
+          "box": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "A line of the FTA VAT 201 return."
+      },
+      "VatReportDto": {
+        "required": [
+          "period",
+          "emirate",
+          "boxes",
+          "outputVat",
+          "inputVat",
+          "netVatPayable"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "emirate": {
+            "$ref": "#/components/schemas/Emirate"
+          },
+          "boxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VatBox"
+            }
+          },
+          "outputVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "inputVat": {
+            "type": "number",
+            "format": "double"
+          },
+          "netVatPayable": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "VoidInvoiceRequest": {
         "required": [
           "reason"
@@ -4123,6 +5577,15 @@
     },
     {
       "name": "Credit Notes"
+    },
+    {
+      "name": "Purchases"
+    },
+    {
+      "name": "Reports"
+    },
+    {
+      "name": "Dashboard"
     }
   ]
 }

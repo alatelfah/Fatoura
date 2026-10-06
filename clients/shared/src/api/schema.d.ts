@@ -1851,16 +1851,504 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    supplierId?: number;
+                    from?: string;
+                    to?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfPurchaseSummaryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PurchaseDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/purchases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PurchaseDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PurchaseDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/purchases/{id}/attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    cashierId?: string;
+                    clientId?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SalesReportDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    supplierId?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PurchasesReportDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/profit-loss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProfitLossDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/vat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VatReportDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/cashier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashierDashboardDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminDashboardDto: {
+            period: components["schemas"]["ReportPeriod"];
+            /** Format: double */
+            sales: number;
+            /** Format: double */
+            purchases: number;
+            /** Format: double */
+            netProfit: number;
+            /** Format: double */
+            outputVat: number;
+            /** Format: double */
+            inputVat: number;
+            /** Format: int32 */
+            openInvoiceCount: number;
+            /** Format: double */
+            openInvoiceBalance: number;
+            /** Format: int32 */
+            openQuotationCount: number;
+            /** Format: int32 */
+            lowStockCount: number;
+            lowStockItems: components["schemas"]["ItemDto"][];
+            monthly: components["schemas"]["MonthlyTotals"][];
+            recentInvoices: components["schemas"]["RecentInvoiceDto"][];
+        };
         AuthResponse: {
             accessToken: string;
             /** Format: date-time */
             accessTokenExpiresAt: string;
             user: components["schemas"]["UserInfo"];
             refreshToken: null | string;
+        };
+        CashierDashboardDto: {
+            /** Format: date */
+            today: string;
+            /** Format: int32 */
+            shiftInvoiceCount: number;
+            /** Format: double */
+            shiftSalesNet: number;
+            /** Format: double */
+            shiftSalesTotal: number;
+            recentInvoices: components["schemas"]["RecentInvoiceDto"][];
         };
         ChangePasswordRequest: {
             currentPassword: string;
@@ -2038,6 +2526,11 @@ export interface components {
         DocumentType: "Invoice" | "Quotation" | "CreditNote" | "Purchase";
         /** @enum {unknown} */
         Emirate: "AbuDhabi" | "Dubai" | "Sharjah" | "Ajman" | "UmmAlQuwain" | "RasAlKhaimah" | "Fujairah";
+        ExpenseLine: {
+            category: string;
+            /** Format: double */
+            amount: number;
+        };
         HealthResponse: {
             status: string;
         };
@@ -2180,6 +2673,22 @@ export interface components {
             password: string;
             client?: components["schemas"]["ClientKind"];
         };
+        MonthlyProfit: {
+            month: string;
+            /** Format: double */
+            sales: number;
+            /** Format: double */
+            purchases: number;
+            /** Format: double */
+            profit: number;
+        };
+        MonthlyTotals: {
+            month: string;
+            /** Format: double */
+            sales: number;
+            /** Format: double */
+            purchases: number;
+        };
         NumberingDto: {
             documentType: components["schemas"]["DocumentType"];
             pattern: string;
@@ -2215,6 +2724,15 @@ export interface components {
         };
         PagedResultOfItemDto: {
             items: components["schemas"]["ItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfPurchaseSummaryDto: {
+            items: components["schemas"]["PurchaseSummaryDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -2277,6 +2795,149 @@ export interface components {
             /** Format: date */
             date: null | string;
             reference: null | string;
+        };
+        /** @description BRD §3.7: Profit = Sales − Purchases/costs, all excluding VAT. */
+        ProfitLossDto: {
+            period: components["schemas"]["ReportPeriod"];
+            /** Format: double */
+            sales: number;
+            /** Format: double */
+            creditNotes: number;
+            /** Format: double */
+            netSales: number;
+            /** Format: double */
+            inventoryPurchases: number;
+            expenses: components["schemas"]["ExpenseLine"][];
+            /** Format: double */
+            totalPurchases: number;
+            /** Format: double */
+            netProfit: number;
+            monthly: components["schemas"]["MonthlyProfit"][];
+        };
+        PurchaseDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            supplierInvoiceNo: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            supplierId: number;
+            supplier: components["schemas"]["PartyDto"];
+            notes: string;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            vatTotal: number;
+            /** Format: double */
+            total: number;
+            hasAttachment: boolean;
+            attachmentFileName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            lines: components["schemas"]["PurchaseLineDto"][];
+        };
+        PurchaseLineDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            lineNo: number;
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            expenseCategory: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        /** @description A purchase line: an item (adds stock at this unit cost) or an expense with a free-text category. */
+        PurchaseLineRequest: {
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            expenseCategory: null | string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
+        };
+        PurchaseReportRow: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            supplierInvoiceNo: string;
+            /** Format: date */
+            date: string;
+            supplierName: string;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        PurchaseRequest: {
+            /** Format: int32 */
+            supplierId: number;
+            supplierInvoiceNo: null | string;
+            /** Format: date */
+            date: string;
+            notes: null | string;
+            lines: components["schemas"]["PurchaseLineRequest"][];
+        };
+        PurchasesBySupplier: {
+            /** Format: int32 */
+            supplierId: number;
+            supplierName: string;
+            /** Format: int32 */
+            count: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        PurchasesReportDto: {
+            period: components["schemas"]["ReportPeriod"];
+            /** Format: int32 */
+            count: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+            bySupplier: components["schemas"]["PurchasesBySupplier"][];
+            rows: components["schemas"]["PurchaseReportRow"][];
+        };
+        PurchaseSummaryDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            supplierInvoiceNo: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName: string;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            vatTotal: number;
+            /** Format: double */
+            total: number;
         };
         QuotationDto: {
             /** Format: int32 */
@@ -2342,11 +3003,92 @@ export interface components {
             convertedInvoiceId: null | number;
             createdByName: string;
         };
+        RecentInvoiceDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            clientName: string;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            balance: number;
+            status: components["schemas"]["InvoiceStatus"];
+        };
         RefreshRequest: {
             refreshToken: null | string;
         };
+        ReportPeriod: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+        };
         ResetPasswordRequest: {
             newPassword: string;
+        };
+        SalesByCashier: {
+            /** Format: uuid */
+            cashierId: string;
+            cashierName: string;
+            /** Format: int32 */
+            invoiceCount: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        /** @enum {unknown} */
+        SalesDocumentKind: "Invoice" | "CreditNote";
+        SalesReportDto: {
+            period: components["schemas"]["ReportPeriod"];
+            summary: components["schemas"]["SalesSummary"];
+            byCashier: components["schemas"]["SalesByCashier"][];
+            rows: components["schemas"]["SalesReportRow"][];
+        };
+        /** @description One sales document; credit notes carry negative amounts so rows sum to net sales. */
+        SalesReportRow: {
+            kind: components["schemas"]["SalesDocumentKind"];
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            clientName: string;
+            cashierName: string;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        SalesSummary: {
+            /** Format: int32 */
+            invoiceCount: number;
+            /** Format: double */
+            invoicesNet: number;
+            /** Format: double */
+            invoicesVat: number;
+            /** Format: double */
+            invoicesTotal: number;
+            /** Format: int32 */
+            creditNoteCount: number;
+            /** Format: double */
+            creditNotesNet: number;
+            /** Format: double */
+            creditNotesVat: number;
+            /** Format: double */
+            creditNotesTotal: number;
+            /** Format: double */
+            netSales: number;
+            /** Format: double */
+            netVat: number;
+            /** Format: double */
+            netTotal: number;
         };
         /** @enum {unknown} */
         SequenceReset: "Never" | "Yearly" | "Monthly";
@@ -2482,6 +3224,26 @@ export interface components {
             displayName: string;
             role: string;
             preferredLanguage: string;
+        };
+        /** @description A line of the FTA VAT 201 return. */
+        VatBox: {
+            box: string;
+            label: string;
+            /** Format: double */
+            amount: number;
+            /** Format: double */
+            vat: number;
+        };
+        VatReportDto: {
+            period: components["schemas"]["ReportPeriod"];
+            emirate: components["schemas"]["Emirate"];
+            boxes: components["schemas"]["VatBox"][];
+            /** Format: double */
+            outputVat: number;
+            /** Format: double */
+            inputVat: number;
+            /** Format: double */
+            netVatPayable: number;
         };
         VoidInvoiceRequest: {
             reason: string;

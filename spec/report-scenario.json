@@ -1,0 +1,44 @@
+{
+  "description": "Hand-computed month of activity (September 2026, company in Dubai). Drives backend/tests/Fatoura.IntegrationTests/ReportsTests.cs; every expected figure below was calculated by hand.",
+  "period": { "from": "2026-09-01", "to": "2026-09-30" },
+  "purchases": [
+    { "key": "P1", "date": "2026-09-02", "supplier": "BOMPANI Trading", "lines": [ { "item": "dishwasher", "description": "BOMPANI BO5171N", "qty": "30", "unitPrice": "1500.00", "tax": "Standard" } ] },
+    { "key": "P2", "date": "2026-09-10", "supplier": "Marasi Properties", "lines": [ { "expense": "Rent", "description": "Office rent September", "qty": "1", "unitPrice": "10000.00", "tax": "Standard" } ] },
+    { "key": "P3", "date": "2026-09-15", "supplier": "Marasi Properties", "lines": [ { "expense": "Insurance", "description": "Medical insurance", "qty": "1", "unitPrice": "1000.00", "tax": "Exempt" } ] },
+    { "key": "P4", "date": "2026-10-01", "supplier": "BOMPANI Trading", "lines": [ { "expense": "Rent", "description": "Outside the period", "qty": "1", "unitPrice": "100.00", "tax": "Standard" } ] }
+  ],
+  "invoices": [
+    { "key": "I1", "date": "2026-09-05", "client": "Aura Suites Downtown", "lines": [
+      { "item": "dishwasher", "description": "BOMPANI BUILTIN DISHWAHER", "qty": "20", "unitPrice": "2050.00", "tax": "Standard" },
+      { "description": "Supply & installation per piece", "qty": "20", "unitPrice": "250.00", "tax": "Standard" } ] },
+    { "key": "I2", "date": "2026-09-12", "client": "Export Customer", "lines": [
+      { "description": "International delivery", "qty": "1", "unitPrice": "500.00", "tax": "ZeroRated" },
+      { "description": "Exempt service", "qty": "1", "unitPrice": "1000.00", "tax": "Exempt" } ] },
+    { "key": "I3", "date": "2026-09-20", "client": "Aura Suites Downtown", "void": "Duplicate", "lines": [
+      { "item": "dishwasher", "description": "BOMPANI BUILTIN DISHWAHER", "qty": "2", "unitPrice": "2050.00", "tax": "Standard" } ] }
+  ],
+  "creditNotes": [
+    { "key": "C1", "invoice": "I1", "date": "2026-09-25", "returnToStock": true, "reason": "2 units returned", "lines": [ { "line": 1, "qty": "2" } ] }
+  ],
+  "expected": {
+    "sales": {
+      "invoiceCount": 2, "invoicesNet": "47500.00", "invoicesVat": "2300.00", "invoicesTotal": "49800.00",
+      "creditNoteCount": 1, "creditNotesNet": "4100.00", "creditNotesVat": "205.00", "creditNotesTotal": "4305.00",
+      "netSales": "43400.00", "netVat": "2095.00", "netTotal": "45495.00"
+    },
+    "purchases": { "count": 3, "net": "56000.00", "vat": "2750.00", "total": "58750.00" },
+    "profitLoss": {
+      "sales": "47500.00", "creditNotes": "4100.00", "netSales": "43400.00", "inventoryPurchases": "45000.00",
+      "expenses": { "Rent": "10000.00", "Insurance": "1000.00" }, "totalPurchases": "56000.00", "netProfit": "-12600.00"
+    },
+    "vat": {
+      "boxes": {
+        "1a": ["0.00", "0.00"], "1b": ["41900.00", "2095.00"], "4": ["500.00", "0.00"], "5": ["1000.00", "0.00"],
+        "8": ["43400.00", "2095.00"], "9": ["55000.00", "2750.00"], "14": ["0.00", "-655.00"]
+      },
+      "outputVat": "2095.00", "inputVat": "2750.00", "netVatPayable": "-655.00"
+    },
+    "dishwasherStock": "12.000",
+    "dishwasherAvgCost": "1500.0000"
+  }
+}

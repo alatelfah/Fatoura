@@ -1,12 +1,15 @@
 using System.Text.Json.Serialization;
 using Fatoura.Api.Auth;
 using Fatoura.Api.Contacts;
+using Fatoura.Api.Dashboard;
 using Fatoura.Api.Data;
 using Fatoura.Api.Data.Entities;
 using Fatoura.Api.Documents;
 using Fatoura.Api.Infrastructure;
 using Fatoura.Api.Inventory;
 using Fatoura.Api.Items;
+using Fatoura.Api.Purchases;
+using Fatoura.Api.Reports;
 using Fatoura.Api.Settings;
 using Fatoura.Api.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -90,6 +93,7 @@ services.AddScoped<SettingsService>();
 services.AddScoped<StockService>();
 services.AddScoped<SequenceService>();
 services.AddScoped<InvoiceService>();
+services.AddScoped<ReportService>();
 
 // HTTP API
 services.ConfigureHttpJsonOptions(o =>
@@ -131,6 +135,9 @@ api.MapItemEndpoints();
 api.MapQuotationEndpoints();
 api.MapInvoiceEndpoints();
 api.MapCreditNoteEndpoints();
+api.MapPurchaseEndpoints();
+api.MapReportEndpoints();
+api.MapDashboardEndpoints();
 
 if (config.GetValue("Database:Initialize", true) && !generatingOpenApi)
 {

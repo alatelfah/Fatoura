@@ -1,0 +1,107 @@
+:root {
+  --fatoura-navy: #1f3a5f;
+}
+
+html[dir='rtl'] body,
+html[lang='ar'] body {
+  font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f5f7fa;
+}
+
+.num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.brand img {
+  width: 28px;
+  height: 28px;
+}
+
+.lines-editor .line-grid {
+  display: grid;
+  grid-template-columns: 28px minmax(220px, 1fr) 100px 130px 130px 100px 120px 36px;
+  gap: 8px;
+  align-items: start;
+}
+
+.lines-editor .line-head {
+  font-weight: 600;
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ddebf7;
+  padding-inline: 4px;
+}
+
+.lines-editor .line-row {
+  padding: 8px 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.lines-editor .line-row > .num {
+  padding-top: 6px;
+}
+
+.lines-editor .line-no {
+  padding-top: 6px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.lines-editor .totals {
+  margin-top: 16px;
+}
+
+.kpi .ant-statistic-content {
+  font-variant-numeric: tabular-nums;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1f3a5f 0%, #2f5d8a 100%);
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .lines-editor .line-head {
+    display: none;
+  }
+
+  .lines-editor .line-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lines-editor .line-row > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .lines-editor .line-no {
+    display: none;
+  }
+}
+
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header,
+  .no-print {
+    display: none !important;
+  }
+}

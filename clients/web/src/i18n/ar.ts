@@ -1,0 +1,107 @@
+import type { Translations } from './en';
+
+const ar: Translations = {
+  app: { name: 'فاتورة', tagline: 'المبيعات والمشتريات والفوترة الضريبية' },
+  common: {
+    save: 'حفظ', cancel: 'إلغاء', create: 'إنشاء', edit: 'تعديل', delete: 'حذف', view: 'عرض', search: 'بحث',
+    add: 'إضافة', actions: 'إجراءات', close: 'إغلاق', confirm: 'تأكيد', yes: 'نعم', no: 'لا', back: 'رجوع',
+    loading: 'جارٍ التحميل…', saved: 'تم الحفظ', deleted: 'تم الحذف', active: 'نشط', inactive: 'غير نشط', status: 'الحالة',
+    showInactive: 'إظهار غير النشط', all: 'الكل', from: 'من', to: 'إلى', period: 'الفترة', apply: 'تطبيق',
+    export: 'تصدير إلى Excel', print: 'طباعة / PDF', download: 'تنزيل PDF', total: 'الإجمالي', notes: 'ملاحظات',
+    required: 'هذا الحقل مطلوب', invalidEmail: 'أدخل بريدًا إلكترونيًا صحيحًا', none: '—', refresh: 'تحديث',
+    error: 'حدث خطأ ما', retry: 'إعادة المحاولة', noData: 'لا توجد بيانات',
+  },
+  nav: {
+    dashboard: 'لوحة القيادة', sales: 'المبيعات', quotations: 'عروض الأسعار', invoices: 'الفواتير الضريبية', creditNotes: 'الإشعارات الدائنة',
+    contacts: 'جهات الاتصال', clients: 'العملاء', suppliers: 'الموردون', items: 'المنتجات والخدمات', purchases: 'المشتريات',
+    reports: 'التقارير', settings: 'الإعدادات', users: 'المستخدمون', logout: 'تسجيل الخروج', language: 'English', profile: 'الملف الشخصي',
+    changePassword: 'تغيير كلمة المرور',
+  },
+  auth: {
+    title: 'تسجيل الدخول', email: 'البريد الإلكتروني', password: 'كلمة المرور', signIn: 'دخول', invalid: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+    sessionExpired: 'انتهت الجلسة. يرجى تسجيل الدخول مجددًا.', currentPassword: 'كلمة المرور الحالية',
+    newPassword: 'كلمة المرور الجديدة', passwordChanged: 'تم تغيير كلمة المرور',
+    passwordRule: '8 أحرف على الأقل تتضمن حرفًا كبيرًا وحرفًا صغيرًا ورقمًا',
+  },
+  roles: { Admin: 'مدير النظام', Cashier: 'كاشير / مبيعات' },
+  dashboard: {
+    welcome: 'مرحبًا، {{name}}', yearToDate: 'منذ بداية السنة', sales: 'صافي المبيعات', purchases: 'المشتريات',
+    netProfit: 'صافي الربح', outputVat: 'ضريبة المخرجات', inputVat: 'ضريبة المدخلات', openInvoices: 'فواتير مفتوحة',
+    openBalance: 'المبلغ المستحق', openQuotations: 'عروض أسعار مفتوحة', lowStock: 'تنبيهات المخزون',
+    monthly: 'المبيعات مقابل المشتريات (آخر 12 شهرًا)', recentInvoices: 'أحدث الفواتير', todaySales: 'مبيعات اليوم',
+    shiftInvoices: 'فواتير اليوم', quickActions: 'اختصارات سريعة', newInvoice: 'فاتورة جديدة',
+    newQuotation: 'عرض سعر جديد', newClient: 'عميل جديد', noLowStock: 'مستويات المخزون جيدة.',
+    myRecentInvoices: 'أحدث فواتيري', exclVat: 'غير شامل الضريبة', inclVat: 'شامل الضريبة',
+  },
+  contact: {
+    name: 'الاسم', phone: 'رقم الهاتف', email: 'البريد الإلكتروني', address: 'العنوان', trn: 'الرقم الضريبي', trnHelp: '15 رقمًا تبدأ بـ 10',
+    trnInvalid: 'يجب أن يتكون الرقم الضريبي من 15 رقمًا ويبدأ بـ 10', newClient: 'عميل جديد', editClient: 'تعديل العميل',
+    newSupplier: 'مورد جديد', editSupplier: 'تعديل المورد', clientName: 'اسم العميل', supplierName: 'اسم المورد',
+    deleteConfirm: 'حذف جهة الاتصال؟ جهات الاتصال المستخدمة في مستندات يتم تعطيلها بدلًا من حذفها.',
+  },
+  item: {
+    name: 'الاسم', description: 'الوصف', type: 'النوع', Product: 'منتج', Service: 'خدمة', unitPrice: 'سعر الوحدة (درهم)',
+    taxCategory: 'الضريبة', Standard: 'أساسية 5%', ZeroRated: 'نسبة صفرية', Exempt: 'معفاة', trackStock: 'تتبع المخزون',
+    stock: 'المخزون', reorderLevel: 'حد إعادة الطلب', avgCost: 'متوسط التكلفة', lowStock: 'مخزون منخفض', newItem: 'منتج / خدمة جديدة',
+    editItem: 'تعديل', adjustStock: 'تسوية المخزون', adjustQty: 'الكمية (+ إضافة / − خصم)', adjustNote: 'السبب',
+    movements: 'حركات المخزون', deleteConfirm: 'حذف هذا الصنف؟ الأصناف المستخدمة في مستندات يتم تعطيلها بدلًا من حذفها.',
+    lowStockOnly: 'المخزون المنخفض فقط',
+  },
+  doc: {
+    today: 'اليوم', number: 'الرقم', date: 'التاريخ', client: 'العميل', supplier: 'المورد', validUntil: 'صالح حتى', expired: 'منتهي الصلاحية',
+    lines: 'البنود', addLine: 'إضافة بند', description: 'وصف الخدمة / المنتج', qty: 'الكمية', unitPrice: 'سعر الوحدة (درهم)',
+    vat: 'الضريبة', amount: 'المبلغ (درهم)', item: 'الصنف', pickItem: 'اختر صنفًا (اختياري)', subTotal: 'المجموع الفرعي',
+    vatTotal: 'ضريبة القيمة المضافة', total: 'المبلغ الإجمالي', terms: 'الشروط والأحكام', paymentTerms: 'شروط الدفع',
+    completionOfWork: 'مدة الإنجاز', notes: 'ملاحظات (ملاحظة في كل سطر)', closingText: 'نص الختام',
+    createdBy: 'أنشأها', paid: 'المدفوع', credited: 'المرتجع', balance: 'المتبقي', noLines: 'أضف بندًا واحدًا على الأقل',
+    stockWarning: 'أصبح مخزون "{{name}}" {{qty}}.', settingsIncomplete: 'أكمل بيانات الشركة في الإعدادات أولًا.',
+  },
+  quotation: {
+    title: 'عروض الأسعار', new: 'عرض سعر جديد', edit: 'تعديل عرض السعر', convert: 'تحويل إلى فاتورة',
+    convertConfirm: 'إصدار فاتورة ضريبية من عرض السعر هذا الآن؟', converted: 'تم التحويل إلى الفاتورة {{number}}',
+    openOnly: 'المفتوحة فقط', markAs: 'تغيير الحالة إلى', Draft: 'مسودة', Sent: 'مُرسل', Accepted: 'مقبول', Rejected: 'مرفوض',
+    Converted: 'محوّل', invoice: 'الفاتورة',
+  },
+  invoice: {
+    title: 'الفواتير الضريبية', new: 'فاتورة ضريبية جديدة', edit: 'تعديل الفاتورة', issue: 'إصدار الفاتورة', Issued: 'صادرة', Void: 'ملغاة',
+    void: 'إلغاء الفاتورة', voidReason: 'سبب الإلغاء', voidConfirm: 'تحتفظ الفاتورة برقمها وتُستبعد من الإجماليات ويُعاد مخزونها.',
+    voided: 'تم الإلغاء', unpaidOnly: 'غير المدفوعة فقط', payments: 'المدفوعات', addPayment: 'تسجيل دفعة', amount: 'المبلغ',
+    method: 'طريقة الدفع', reference: 'المرجع', Cash: 'نقدًا', Card: 'بطاقة', BankTransfer: 'تحويل بنكي', Cheque: 'شيك',
+    paymentOnIssue: 'الدفع عند الإصدار', paidInFull: 'مدفوعة بالكامل', notPaid: 'غير مدفوعة بعد', partial: 'دفعة جزئية',
+    creditNote: 'إصدار إشعار دائن', quotationRef: 'من عرض السعر', company: 'جهة الإصدار', cashierDateNote: 'يصدر الكاشير الفواتير بتاريخ اليوم.',
+  },
+  creditNote: {
+    title: 'الإشعارات الدائنة', new: 'إشعار دائن جديد', reason: 'السبب', returnToStock: 'إرجاع الأصناف إلى المخزون',
+    againstInvoice: 'مقابل الفاتورة', creditQty: 'الكمية المرتجعة', remaining: 'المتبقي', issued: 'تم إصدار الإشعار الدائن {{number}}',
+  },
+  purchase: {
+    title: 'المشتريات', new: 'فاتورة مشتريات جديدة', edit: 'تعديل المشتريات', supplierInvoiceNo: 'رقم فاتورة المورد',
+    expenseCategory: 'فئة المصروف', lineKind: 'صنف أو مصروف', attachment: 'مرفق', upload: 'رفع',
+    deleteConfirm: 'حذف فاتورة المشتريات؟ سيتم خصم المخزون الذي أضافته.', unitCost: 'تكلفة الوحدة (درهم)',
+  },
+  reports: {
+    title: 'التقارير', sales: 'المبيعات', purchases: 'المشتريات', profitLoss: 'الأرباح والخسائر', vat: 'الإقرار الضريبي',
+    cashier: 'الكاشير', invoices: 'الفواتير', creditNotes: 'الإشعارات الدائنة', netSales: 'صافي المبيعات (غير شامل الضريبة)', netVat: 'صافي الضريبة',
+    netTotal: 'الصافي الإجمالي', type: 'النوع', net: 'الصافي (درهم)', vatAmount: 'الضريبة (درهم)', byCashier: 'حسب الكاشير', bySupplier: 'حسب المورد',
+    count: 'العدد', grossSales: 'المبيعات (غير شامل الضريبة)', lessCredits: 'ناقص الإشعارات الدائنة', inventory: 'مشتريات المخزون',
+    expenses: 'المصروفات', totalCosts: 'إجمالي المشتريات والتكاليف', netProfit: 'صافي الربح', month: 'الشهر', box: 'الخانة',
+    boxLabel: 'البيان', outputVat: 'ضريبة المخرجات', inputVat: 'ضريبة المدخلات (القابلة للاسترداد)', payable: 'صافي الضريبة المستحقة',
+    refundable: 'صافي الضريبة المستردة', emirate: 'الإمارة', Invoice: 'فاتورة', CreditNote: 'إشعار دائن',
+  },
+  settings: {
+    title: 'الإعدادات', company: 'الشركة', companyName: 'اسم الشركة', emirate: 'الإمارة', website: 'الموقع الإلكتروني', vatRate: 'نسبة الضريبة (%)',
+    logo: 'الشعار', stamp: 'الختم', uploadImage: 'رفع صورة PNG أو JPEG (حتى 1 ميجابايت)', remove: 'إزالة', documents: 'المستندات والشروط',
+    quotationValidity: 'صلاحية عرض السعر (أيام)', stock: 'المخزون', allowNegativeStock: 'السماح بالبيع دون مخزون كافٍ (تنبيه فقط)',
+    numbering: 'ترقيم المستندات', pattern: 'النمط', reset: 'إعادة العداد', example: 'مثال على الرقم التالي',
+    patternHelp: 'الرموز: {YYYY} {YY} {MM} {MON} {DD} {SEQ} {SEQ:4}', Never: 'أبدًا', Yearly: 'كل سنة', Monthly: 'كل شهر',
+    Invoice: 'فاتورة ضريبية', Quotation: 'عرض سعر', CreditNote: 'إشعار دائن', Purchase: 'مشتريات', incomplete: 'بيانات الشركة غير مكتملة — لا يمكن إصدار المستندات بعد.',
+    AbuDhabi: 'أبوظبي', Dubai: 'دبي', Sharjah: 'الشارقة', Ajman: 'عجمان', UmmAlQuwain: 'أم القيوين', RasAlKhaimah: 'رأس الخيمة', Fujairah: 'الفجيرة',
+  },
+  users: {
+    title: 'المستخدمون', new: 'مستخدم جديد', edit: 'تعديل المستخدم', displayName: 'الاسم الظاهر', role: 'الدور', resetPassword: 'إعادة تعيين كلمة المرور',
+    created: 'تاريخ الإنشاء', passwordReset: 'تمت إعادة تعيين كلمة المرور',
+  },
+  errors: { forbidden: 'ليست لديك صلاحية الوصول إلى هذه الصفحة.', notFound: 'الصفحة غير موجودة.', goHome: 'الذهاب إلى لوحة القيادة' },
+};
+
+export default ar;

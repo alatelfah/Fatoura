@@ -3,8 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import dayjs from 'dayjs';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import 'dayjs/locale/ar';
-import en from './en';
-import ar from './ar';
+import { ar, en } from '@fatoura/shared';
 
 export type Language = 'en' | 'ar';
 const STORAGE_KEY = 'fatoura.language';

@@ -1,0 +1,16 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@fatoura/shared": ["../clients/shared/src/index.ts"],
+      "big.js": ["./node_modules/@types/big.js"],
+      "openapi-fetch": ["./node_modules/openapi-fetch"],
+      "openapi-react-query": ["./node_modules/openapi-react-query"],
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules", "dist", "test-results"]
+}

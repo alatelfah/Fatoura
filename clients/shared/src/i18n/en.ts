@@ -99,6 +99,11 @@ const en = {
     title: 'Users', new: 'New user', edit: 'Edit user', displayName: 'Display name', role: 'Role', resetPassword: 'Reset password',
     created: 'Created', passwordReset: 'Password reset',
   },
+  mobile: {
+    more: 'More', serverUrl: 'Server', signedInAs: 'Signed in as {{name}}', share: 'Share PDF', pickClient: 'Choose client',
+    pickItem: 'Choose item', noItem: 'No item (free text)', lineTotal: 'Line total', removeLine: 'Remove line',
+    languageRestart: 'The app will restart to apply the language.', today: 'Today', webOnly: 'Available in the web app',
+  },
   errors: { forbidden: 'You do not have access to this page.', notFound: 'Page not found.', goHome: 'Go to dashboard' },
 };
 

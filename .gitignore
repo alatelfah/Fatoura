@@ -18,8 +18,8 @@ coverage/
 # Expo / React Native
 .expo/
 web-build/
-clients/mobile/android/
-clients/mobile/ios/
+mobile/android/
+mobile/ios/
 
 # Playwright
 test-results/

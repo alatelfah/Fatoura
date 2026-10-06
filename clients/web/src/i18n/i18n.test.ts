@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import en from './en';
-import ar from './ar';
+import { ar, en } from '@fatoura/shared';
 import { applyLanguage } from './index';
 
 function keys(obj: object, prefix = ''): string[] {

@@ -101,6 +101,11 @@ const ar: Translations = {
     title: 'المستخدمون', new: 'مستخدم جديد', edit: 'تعديل المستخدم', displayName: 'الاسم الظاهر', role: 'الدور', resetPassword: 'إعادة تعيين كلمة المرور',
     created: 'تاريخ الإنشاء', passwordReset: 'تمت إعادة تعيين كلمة المرور',
   },
+  mobile: {
+    more: 'المزيد', serverUrl: 'الخادم', signedInAs: 'مسجل الدخول باسم {{name}}', share: 'مشاركة PDF', pickClient: 'اختر العميل',
+    pickItem: 'اختر الصنف', noItem: 'بدون صنف (نص حر)', lineTotal: 'إجمالي البند', removeLine: 'حذف البند',
+    languageRestart: 'سيُعاد تشغيل التطبيق لتطبيق اللغة.', today: 'اليوم', webOnly: 'متاح في تطبيق الويب',
+  },
   errors: { forbidden: 'ليست لديك صلاحية الوصول إلى هذه الصفحة.', notFound: 'الصفحة غير موجودة.', goHome: 'الذهاب إلى لوحة القيادة' },
 };
 

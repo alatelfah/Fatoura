@@ -1269,6 +1269,588 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    clientId?: number;
+                    status?: components["schemas"]["QuotationStatus"];
+                    from?: string;
+                    to?: string;
+                    openOnly?: boolean;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfQuotationSummaryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuotationRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuotationDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuotationDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuotationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuotationDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotations/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuotationStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuotationDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quotations/{id}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["ConvertQuotationRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    clientId?: number;
+                    createdById?: string;
+                    status?: components["schemas"]["InvoiceStatus"];
+                    from?: string;
+                    to?: string;
+                    unpaidOnly?: boolean;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfInvoiceSummaryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["IssueInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceDto"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceResult"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VoidInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invoices/{id}/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                    paymentId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InvoiceDto"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credit-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    search?: string;
+                    invoiceId?: number;
+                    from?: string;
+                    to?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfCreditNoteSummaryListDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreditNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreditNoteDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/credit-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreditNoteDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1302,6 +1884,14 @@ export interface components {
          * @enum {unknown}
          */
         ClientKind: "Web" | "Mobile";
+        CompanyDto: {
+            name: string;
+            address: string;
+            phone: string;
+            email: string;
+            website: string;
+            trn: string;
+        };
         ContactRequest: {
             name: string;
             phone: null | string;
@@ -1311,11 +1901,138 @@ export interface components {
             /** @default true */
             isActive: boolean;
         };
+        ConvertQuotationRequest: {
+            payment: null | components["schemas"]["PaymentRequest"];
+        };
         CreateUserRequest: {
             email: string;
             displayName: string;
             password: string;
             role: string;
+        };
+        CreditNoteDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            invoiceId: number;
+            invoiceNumber: string;
+            /** Format: date */
+            invoiceDate: string;
+            reason: string;
+            returnToStock: boolean;
+            client: components["schemas"]["PartyDto"];
+            company: components["schemas"]["CompanyDto"];
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            vatTotal: number;
+            /** Format: double */
+            total: number;
+            /** Format: uuid */
+            createdById: string;
+            createdByName: string;
+            /** Format: date-time */
+            createdAt: string;
+            lines: components["schemas"]["CreditNoteLineDto"][];
+        };
+        CreditNoteLineDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            lineNo: number;
+            /** Format: int32 */
+            invoiceLineId: number;
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        CreditNoteLineRequest: {
+            /** Format: int32 */
+            invoiceLineId: number;
+            /** Format: double */
+            quantity: number;
+        };
+        CreditNoteRequest: {
+            /** Format: int32 */
+            invoiceId: number;
+            /** Format: date */
+            date: null | string;
+            reason: string;
+            returnToStock: boolean;
+            lines: components["schemas"]["CreditNoteLineRequest"][];
+        };
+        CreditNoteSummaryDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            total: number;
+            reason: string;
+        };
+        CreditNoteSummaryListDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            invoiceId: number;
+            invoiceNumber: string;
+            clientName: string;
+            /** Format: double */
+            total: number;
+            createdByName: string;
+        };
+        DocumentLineDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            lineNo: number;
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+        };
+        /** @description Validated by Task DocumentLines.ValidateAsync(IReadOnlyList&lt;DocumentLineRequest&gt;? lines, FatouraDbContext db, FieldValidator v, CancellationToken ct, bool allowInactiveItems = false) so all line errors are reported together. */
+        DocumentLineRequest: {
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
         };
         /** @enum {unknown} */
         DocumentType: "Invoice" | "Quotation" | "CreditNote" | "Purchase";
@@ -1326,6 +2043,104 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        InvoiceDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            clientId: number;
+            client: components["schemas"]["PartyDto"];
+            company: components["schemas"]["CompanyDto"];
+            /** Format: int32 */
+            quotationId: null | number;
+            quotationNumber: string;
+            status: components["schemas"]["InvoiceStatus"];
+            voidReason: string;
+            /** Format: date-time */
+            voidedAt: null | string;
+            terms: components["schemas"]["TermsDto"];
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            vatTotal: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            paidTotal: number;
+            /** Format: double */
+            creditedTotal: number;
+            /** Format: double */
+            balance: number;
+            /** Format: uuid */
+            createdById: string;
+            createdByName: string;
+            /** Format: date-time */
+            createdAt: string;
+            lines: components["schemas"]["InvoiceLineDto"][];
+            payments: components["schemas"]["PaymentDto"][];
+            creditNotes: components["schemas"]["CreditNoteSummaryDto"][];
+        };
+        InvoiceLineDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            lineNo: number;
+            /** Format: int32 */
+            itemId: null | number;
+            description: string;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitPrice: number;
+            taxCategory: components["schemas"]["TaxCategory"];
+            /** Format: double */
+            vatRate: number;
+            /** Format: double */
+            net: number;
+            /** Format: double */
+            vat: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            creditedQuantity: number;
+        };
+        InvoiceResult: {
+            invoice: components["schemas"]["InvoiceDto"];
+            warnings: components["schemas"]["StockWarning"][];
+        };
+        /** @enum {unknown} */
+        InvoiceStatus: "Issued" | "Void";
+        InvoiceSummaryDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            clientId: number;
+            clientName: string;
+            status: components["schemas"]["InvoiceStatus"];
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            paidTotal: number;
+            /** Format: double */
+            creditedTotal: number;
+            /** Format: double */
+            balance: number;
+            createdByName: string;
+        };
+        IssueInvoiceRequest: {
+            /** Format: int32 */
+            clientId: number;
+            /** Format: date */
+            date: null | string;
+            lines: components["schemas"]["DocumentLineRequest"][];
+            terms: null | components["schemas"]["TermsRequest"];
+            payment: null | components["schemas"]["PaymentRequest"];
+        };
         ItemDto: {
             /** Format: int32 */
             id: number;
@@ -1380,8 +2195,35 @@ export interface components {
             /** Format: int32 */
             pageSize: number;
         };
+        PagedResultOfCreditNoteSummaryListDto: {
+            items: components["schemas"]["CreditNoteSummaryListDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfInvoiceSummaryDto: {
+            items: components["schemas"]["InvoiceSummaryDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         PagedResultOfItemDto: {
             items: components["schemas"]["ItemDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        PagedResultOfQuotationSummaryDto: {
+            items: components["schemas"]["QuotationSummaryDto"][];
             /** Format: int32 */
             total: number;
             /** Format: int32 */
@@ -1406,6 +2248,99 @@ export interface components {
             page: number;
             /** Format: int32 */
             pageSize: number;
+        };
+        PartyDto: {
+            name: string;
+            address: string;
+            phone: string;
+            email: string;
+            trn: string;
+        };
+        PaymentDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            amount: number;
+            method: components["schemas"]["PaymentMethod"];
+            reference: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        PaymentMethod: "Cash" | "Card" | "BankTransfer" | "Cheque";
+        PaymentRequest: {
+            /** Format: double */
+            amount: number;
+            method: components["schemas"]["PaymentMethod"];
+            /** Format: date */
+            date: null | string;
+            reference: null | string;
+        };
+        QuotationDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: date */
+            validUntil: string;
+            isExpired: boolean;
+            /** Format: int32 */
+            clientId: number;
+            client: components["schemas"]["PartyDto"];
+            status: components["schemas"]["QuotationStatus"];
+            /** Format: int32 */
+            convertedInvoiceId: null | number;
+            convertedInvoiceNumber: null | string;
+            terms: components["schemas"]["TermsDto"];
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            vatTotal: number;
+            /** Format: double */
+            total: number;
+            /** Format: uuid */
+            createdById: string;
+            createdByName: string;
+            /** Format: date-time */
+            createdAt: string;
+            lines: components["schemas"]["DocumentLineDto"][];
+        };
+        QuotationRequest: {
+            /** Format: int32 */
+            clientId: number;
+            /** Format: date */
+            date: null | string;
+            /** Format: date */
+            validUntil: null | string;
+            lines: components["schemas"]["DocumentLineRequest"][];
+            terms: null | components["schemas"]["TermsRequest"];
+        };
+        /** @enum {unknown} */
+        QuotationStatus: "Draft" | "Sent" | "Accepted" | "Rejected" | "Converted";
+        QuotationStatusRequest: {
+            status: components["schemas"]["QuotationStatus"];
+        };
+        QuotationSummaryDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date */
+            date: string;
+            /** Format: date */
+            validUntil: string;
+            isExpired: boolean;
+            /** Format: int32 */
+            clientId: number;
+            clientName: string;
+            status: components["schemas"]["QuotationStatus"];
+            /** Format: double */
+            total: number;
+            /** Format: int32 */
+            convertedInvoiceId: null | number;
+            createdByName: string;
         };
         RefreshRequest: {
             refreshToken: null | string;
@@ -1456,6 +2391,13 @@ export interface components {
         };
         /** @enum {unknown} */
         StockMovementType: "Purchase" | "Sale" | "CreditNote" | "Void" | "Adjustment" | "PurchaseReversal" | "SaleReversal";
+        StockWarning: {
+            /** Format: int32 */
+            itemId: number;
+            itemName: string;
+            /** Format: double */
+            stockAfter: number;
+        };
         SupplierDto: {
             /** Format: int32 */
             id: number;
@@ -1470,6 +2412,27 @@ export interface components {
         };
         /** @enum {unknown} */
         TaxCategory: "Standard" | "ZeroRated" | "Exempt";
+        TermsDto: {
+            paymentTerms: string;
+            completionOfWork: string;
+            notes: string;
+            closingText: string;
+        };
+        /** @description Optional per-document terms; omitted values fall back to the defaults in Settings. */
+        TermsRequest: {
+            paymentTerms: null | string;
+            completionOfWork: null | string;
+            notes: null | string;
+            closingText: null | string;
+        };
+        UpdateInvoiceRequest: {
+            /** Format: int32 */
+            clientId: number;
+            /** Format: date */
+            date: string;
+            lines: components["schemas"]["DocumentLineRequest"][];
+            terms: null | components["schemas"]["TermsRequest"];
+        };
         UpdateNumberingRequest: {
             documentType: components["schemas"]["DocumentType"];
             pattern: string;
@@ -1519,6 +2482,9 @@ export interface components {
             displayName: string;
             role: string;
             preferredLanguage: string;
+        };
+        VoidInvoiceRequest: {
+            reason: string;
         };
     };
     responses: never;

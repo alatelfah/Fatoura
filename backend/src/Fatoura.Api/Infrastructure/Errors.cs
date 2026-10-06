@@ -93,3 +93,28 @@ internal sealed class ProblemExceptionHandler(IProblemDetailsService problemDeta
         });
     }
 }
+
+/// <summary>
+/// Built-in request validation reports keys like "Lines[0].Description"; the API's own rules use "lines[0].description".
+/// Normalising every segment to camelCase gives clients one convention.
+/// </summary>
+internal static class ProblemKeys
+{
+    public static void CamelCase(ProblemDetails problem)
+    {
+        if (problem is not HttpValidationProblemDetails v)
+        {
+            return;
+        }
+
+        var renamed = v.Errors.ToDictionary(kv => Convert(kv.Key), kv => kv.Value, StringComparer.Ordinal);
+        v.Errors.Clear();
+        foreach (var (key, value) in renamed)
+        {
+            v.Errors[key] = value;
+        }
+    }
+
+    private static string Convert(string key) =>
+        string.Join('.', key.Split('.').Select(s => s.Length > 0 && char.IsUpper(s[0]) ? char.ToLowerInvariant(s[0]) + s[1..] : s));
+}

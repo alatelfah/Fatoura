@@ -1153,6 +1153,719 @@
           }
         }
       }
+    },
+    "/api/quotations": {
+      "get": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/QuotationStatus"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "openOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfQuotationSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quotations"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quotations/{id}": {
+      "get": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/quotations/{id}/status": {
+      "put": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotationStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quotations/{id}/convert": {
+      "post": {
+        "tags": [
+          "Quotations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ConvertQuotationRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "createdById",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceStatus"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "unpaidOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfInvoiceSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/void": {
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/payments": {
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invoices/{id}/payments/{paymentId}": {
+      "delete": {
+        "tags": [
+          "Invoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/credit-notes": {
+      "get": {
+        "tags": [
+          "Credit Notes"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invoiceId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfCreditNoteSummaryListDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Credit Notes"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditNoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditNoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/credit-notes/{id}": {
+      "get": {
+        "tags": [
+          "Credit Notes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditNoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1250,6 +1963,37 @@
         "description": "Web clients receive the refresh token as an httpOnly cookie; mobile clients receive it in the body.",
         "default": "Web"
       },
+      "CompanyDto": {
+        "required": [
+          "name",
+          "address",
+          "phone",
+          "email",
+          "website",
+          "trn"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "trn": {
+            "type": "string"
+          }
+        }
+      },
       "ContactRequest": {
         "required": [
           "name",
@@ -1298,6 +2042,24 @@
           }
         }
       },
+      "ConvertQuotationRequest": {
+        "required": [
+          "payment"
+        ],
+        "type": "object",
+        "properties": {
+          "payment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentRequest"
+              }
+            ]
+          }
+        }
+      },
       "CreateUserRequest": {
         "required": [
           "email",
@@ -1325,6 +2087,384 @@
             "type": "string"
           }
         }
+      },
+      "CreditNoteDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "invoiceId",
+          "invoiceNumber",
+          "invoiceDate",
+          "reason",
+          "returnToStock",
+          "client",
+          "company",
+          "subTotal",
+          "vatTotal",
+          "total",
+          "createdById",
+          "createdByName",
+          "createdAt",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "returnToStock": {
+            "type": "boolean"
+          },
+          "client": {
+            "$ref": "#/components/schemas/PartyDto"
+          },
+          "company": {
+            "$ref": "#/components/schemas/CompanyDto"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditNoteLineDto"
+            }
+          }
+        }
+      },
+      "CreditNoteLineDto": {
+        "required": [
+          "id",
+          "lineNo",
+          "invoiceLineId",
+          "itemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "taxCategory",
+          "vatRate",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invoiceLineId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CreditNoteLineRequest": {
+        "required": [
+          "invoiceLineId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceLineId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CreditNoteRequest": {
+        "required": [
+          "invoiceId",
+          "date",
+          "reason",
+          "returnToStock",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reason": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "returnToStock": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditNoteLineRequest"
+            }
+          }
+        }
+      },
+      "CreditNoteSummaryDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "total",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "CreditNoteSummaryListDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "invoiceId",
+          "invoiceNumber",
+          "clientName",
+          "total",
+          "createdByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "invoiceId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdByName": {
+            "type": "string"
+          }
+        }
+      },
+      "DocumentLineDto": {
+        "required": [
+          "id",
+          "lineNo",
+          "itemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "taxCategory",
+          "vatRate",
+          "net",
+          "vat",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "DocumentLineRequest": {
+        "required": [
+          "itemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "taxCategory"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          }
+        },
+        "description": "Validated by Task DocumentLines.ValidateAsync(IReadOnlyList&lt;DocumentLineRequest&gt;? lines, FatouraDbContext db, FieldValidator v, CancellationToken ct, bool allowInactiveItems = false) so all line errors are reported together."
       },
       "DocumentType": {
         "enum": [
@@ -1359,6 +2499,336 @@
       "IFormFile": {
         "type": "string",
         "format": "binary"
+      },
+      "InvoiceDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "clientId",
+          "client",
+          "company",
+          "quotationId",
+          "quotationNumber",
+          "status",
+          "voidReason",
+          "voidedAt",
+          "terms",
+          "subTotal",
+          "vatTotal",
+          "total",
+          "paidTotal",
+          "creditedTotal",
+          "balance",
+          "createdById",
+          "createdByName",
+          "createdAt",
+          "lines",
+          "payments",
+          "creditNotes"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "client": {
+            "$ref": "#/components/schemas/PartyDto"
+          },
+          "company": {
+            "$ref": "#/components/schemas/CompanyDto"
+          },
+          "quotationId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "quotationNumber": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InvoiceStatus"
+          },
+          "voidReason": {
+            "type": "string"
+          },
+          "voidedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "terms": {
+            "$ref": "#/components/schemas/TermsDto"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditedTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineDto"
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentDto"
+            }
+          },
+          "creditNotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditNoteSummaryDto"
+            }
+          }
+        }
+      },
+      "InvoiceLineDto": {
+        "required": [
+          "id",
+          "lineNo",
+          "itemId",
+          "description",
+          "quantity",
+          "unitPrice",
+          "taxCategory",
+          "vatRate",
+          "net",
+          "vat",
+          "total",
+          "creditedQuantity"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxCategory": {
+            "$ref": "#/components/schemas/TaxCategory"
+          },
+          "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          },
+          "vat": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditedQuantity": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "InvoiceResult": {
+        "required": [
+          "invoice",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceDto"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockWarning"
+            }
+          }
+        }
+      },
+      "InvoiceStatus": {
+        "enum": [
+          "Issued",
+          "Void"
+        ]
+      },
+      "InvoiceSummaryDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "clientId",
+          "clientName",
+          "status",
+          "total",
+          "paidTotal",
+          "creditedTotal",
+          "balance",
+          "createdByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InvoiceStatus"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "creditedTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdByName": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueInvoiceRequest": {
+        "required": [
+          "clientId",
+          "date",
+          "lines",
+          "terms",
+          "payment"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentLineRequest"
+            }
+          },
+          "terms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TermsRequest"
+              }
+            ]
+          },
+          "payment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentRequest"
+              }
+            ]
+          }
+        }
       },
       "ItemDto": {
         "required": [
@@ -1548,6 +3018,64 @@
           }
         }
       },
+      "PagedResultOfCreditNoteSummaryListDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditNoteSummaryListDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfInvoiceSummaryDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceSummaryDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PagedResultOfItemDto": {
         "required": [
           "items",
@@ -1561,6 +3089,35 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PagedResultOfQuotationSummaryDto": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuotationSummaryDto"
             }
           },
           "total": {
@@ -1632,6 +3189,332 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PartyDto": {
+        "required": [
+          "name",
+          "address",
+          "phone",
+          "email",
+          "trn"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "trn": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentDto": {
+        "required": [
+          "id",
+          "date",
+          "amount",
+          "method",
+          "reference",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentMethod": {
+        "enum": [
+          "Cash",
+          "Card",
+          "BankTransfer",
+          "Cheque"
+        ]
+      },
+      "PaymentRequest": {
+        "required": [
+          "amount",
+          "method",
+          "date",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reference": {
+            "maxLength": 100,
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "QuotationDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "validUntil",
+          "isExpired",
+          "clientId",
+          "client",
+          "status",
+          "convertedInvoiceId",
+          "convertedInvoiceNumber",
+          "terms",
+          "subTotal",
+          "vatTotal",
+          "total",
+          "createdById",
+          "createdByName",
+          "createdAt",
+          "lines"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          },
+          "isExpired": {
+            "type": "boolean"
+          },
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "client": {
+            "$ref": "#/components/schemas/PartyDto"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuotationStatus"
+          },
+          "convertedInvoiceId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "convertedInvoiceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "terms": {
+            "$ref": "#/components/schemas/TermsDto"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentLineDto"
+            }
+          }
+        }
+      },
+      "QuotationRequest": {
+        "required": [
+          "clientId",
+          "date",
+          "validUntil",
+          "lines",
+          "terms"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentLineRequest"
+            }
+          },
+          "terms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TermsRequest"
+              }
+            ]
+          }
+        }
+      },
+      "QuotationStatus": {
+        "enum": [
+          "Draft",
+          "Sent",
+          "Accepted",
+          "Rejected",
+          "Converted"
+        ]
+      },
+      "QuotationStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/QuotationStatus"
+          }
+        }
+      },
+      "QuotationSummaryDto": {
+        "required": [
+          "id",
+          "number",
+          "date",
+          "validUntil",
+          "isExpired",
+          "clientId",
+          "clientName",
+          "status",
+          "total",
+          "convertedInvoiceId",
+          "createdByName"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "validUntil": {
+            "type": "string",
+            "format": "date"
+          },
+          "isExpired": {
+            "type": "boolean"
+          },
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuotationStatus"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "convertedInvoiceId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "createdByName": {
+            "type": "string"
           }
         }
       },
@@ -1813,6 +3696,27 @@
           "SaleReversal"
         ]
       },
+      "StockWarning": {
+        "required": [
+          "itemId",
+          "itemName",
+          "stockAfter"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "stockAfter": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "SupplierDto": {
         "required": [
           "id",
@@ -1860,6 +3764,104 @@
           "ZeroRated",
           "Exempt"
         ]
+      },
+      "TermsDto": {
+        "required": [
+          "paymentTerms",
+          "completionOfWork",
+          "notes",
+          "closingText"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentTerms": {
+            "type": "string"
+          },
+          "completionOfWork": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "closingText": {
+            "type": "string"
+          }
+        }
+      },
+      "TermsRequest": {
+        "required": [
+          "paymentTerms",
+          "completionOfWork",
+          "notes",
+          "closingText"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentTerms": {
+            "maxLength": 1000,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "completionOfWork": {
+            "maxLength": 1000,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "maxLength": 4000,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "closingText": {
+            "maxLength": 1000,
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "Optional per-document terms; omitted values fall back to the defaults in Settings."
+      },
+      "UpdateInvoiceRequest": {
+        "required": [
+          "clientId",
+          "date",
+          "lines",
+          "terms"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentLineRequest"
+            }
+          },
+          "terms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TermsRequest"
+              }
+            ]
+          }
+        }
       },
       "UpdateNumberingRequest": {
         "required": [
@@ -2076,6 +4078,18 @@
             "type": "string"
           }
         }
+      },
+      "VoidInvoiceRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -2100,6 +4114,15 @@
     },
     {
       "name": "Items"
+    },
+    {
+      "name": "Quotations"
+    },
+    {
+      "name": "Invoices"
+    },
+    {
+      "name": "Credit Notes"
     }
   ]
 }

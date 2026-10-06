@@ -3,6 +3,7 @@ using Fatoura.Api.Auth;
 using Fatoura.Api.Contacts;
 using Fatoura.Api.Data;
 using Fatoura.Api.Data.Entities;
+using Fatoura.Api.Documents;
 using Fatoura.Api.Infrastructure;
 using Fatoura.Api.Inventory;
 using Fatoura.Api.Items;
@@ -87,6 +88,8 @@ services.AddAuthorizationBuilder()
 services.AddScoped<TokenService>();
 services.AddScoped<SettingsService>();
 services.AddScoped<StockService>();
+services.AddScoped<SequenceService>();
+services.AddScoped<InvoiceService>();
 
 // HTTP API
 services.ConfigureHttpJsonOptions(o =>
@@ -95,7 +98,7 @@ services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 });
 services.AddValidation();
-services.AddProblemDetails();
+services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx => ProblemKeys.CamelCase(ctx.ProblemDetails));
 services.AddExceptionHandler<ProblemExceptionHandler>();
 services.AddOpenApi(o => o.AddDocumentTransformer((doc, _, _) =>
 {
@@ -125,6 +128,9 @@ api.MapSettingsEndpoints();
 api.MapClientEndpoints();
 api.MapSupplierEndpoints();
 api.MapItemEndpoints();
+api.MapQuotationEndpoints();
+api.MapInvoiceEndpoints();
+api.MapCreditNoteEndpoints();
 
 if (config.GetValue("Database:Initialize", true) && !generatingOpenApi)
 {

@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SA_PASSWORD: Fatoura_CI_2026!
+
+jobs:
+  backend:
+    name: Backend (.NET + SQL Server)
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: Developer
+          MSSQL_SA_PASSWORD: Fatoura_CI_2026!
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Fatoura_CI_2026!' -Q 'SELECT 1' || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 20
+    env:
+      FATOURA_TEST_SQL: Server=localhost,1433;User Id=sa;Password=Fatoura_CI_2026!;TrustServerCertificate=True
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+      - run: dotnet tool restore
+      - run: dotnet build
+      - name: OpenAPI contract is committed and current
+        run: git diff --exit-code -- ../clients/shared/openapi.json
+      - name: Migrations match the model
+        run: dotnet ef migrations has-pending-model-changes -p src/Fatoura.Api -s src/Fatoura.Api
+      - run: dotnet test --project tests/Fatoura.UnitTests --no-build
+      - run: dotnet test --project tests/Fatoura.IntegrationTests --no-build
+
+  clients:
+    name: Shared + web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: clients/package-lock.json
+      - run: npm ci
+      - name: Generated API types are current
+        run: npm run gen:api -w @fatoura/shared && git diff --exit-code -- shared/src/api/schema.d.ts
+      - run: npm run typecheck -w @fatoura/shared
+      - run: npm test -w @fatoura/shared
+      - run: npm run typecheck -w @fatoura/web
+      - run: npm test -w @fatoura/web
+      - run: npm run build -w @fatoura/web
+
+  mobile:
+    name: Mobile (Expo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test -- --ci
+      - name: Bundle for Android, iOS and web
+        run: npx expo export -p android -p ios -p web --output-dir dist
+        env:
+          CI: "1"
+
+  e2e:
+    name: End-to-end (Playwright)
+    needs: [backend, clients, mobile]
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: Developer
+          MSSQL_SA_PASSWORD: Fatoura_CI_2026!
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Fatoura_CI_2026!' -Q 'SELECT 1' || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 20
+    env:
+      CI: "true"
+      FATOURA_E2E_DB: Server=localhost,1433;Database=Fatoura_E2E;User Id=sa;Password=Fatoura_CI_2026!;TrustServerCertificate=True
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: dotnet build backend
+      - run: npm ci
+        working-directory: clients
+      - run: npx playwright install --with-deps chromium
+        working-directory: clients/web
+      - name: Web app journeys
+        run: npx playwright test
+        working-directory: clients/web
+      - name: Mobile web build smoke test
+        working-directory: mobile
+        run: |
+          npm ci
+          npx expo export -p web --output-dir dist
+          npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: |
+            clients/web/playwright-report
+            clients/web/test-results
+            mobile/test-results
+
+  docker:
+    name: Docker images
+    needs: [backend, clients]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t fatoura-api backend
+      - run: docker build -t fatoura-web clients

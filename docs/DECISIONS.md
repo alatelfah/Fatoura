@@ -88,3 +88,21 @@ The product owner made the decisions marked **(owner)**. The others are the impl
 ## Out of scope for v1
 - Discounts (FTA rules would require them to be shown on the invoice), multi-currency, and FTA e-invoicing (PINT-AE through an accredited provider).
 - Settings and user management are web-only. The mobile app covers daily operations, the dashboard and read-only reports.
+
+## Implementation details
+- **Who can change what:**
+  - Cashiers can **add** clients but not edit or delete them (BRD §2).
+  - Contacts and items that appear on documents are **deactivated instead of deleted**, so history stays intact.
+  - Quotations can be changed by the cashier who created them or by an Admin, until they are converted.
+- **Invoice dates:** cashiers always issue invoices dated today (Asia/Dubai). Admins may back-date an invoice but never post-date it.
+- **After a credit note:** an invoice that has a credit note can no longer be edited or voided. Credit notes always use the original line's price, tax category and VAT rate.
+- **Payments:** a payment cannot exceed the balance due.
+- **Purchases:** purchases are internal records (they don't use FTA invoice numbering), so Admins can edit or delete them. The stock they added is reversed. The moving-average cost is not recalculated backwards.
+- **Purchase VAT:** VAT on purchases is calculated with the same per-line rule as sales. If a supplier's invoice differs by a fils because of its own rounding, adjust a line amount.
+- **Reports:**
+  - Each report covers at most 5 years.
+  - Cashiers can run the Sales report, and it always shows only their own sales.
+  - Purchases, P&L and VAT reports are Admin-only.
+  - Reports export to Excel (.xlsx).
+- **Repository layout:** the mobile app lives in `/mobile`, outside the `clients/` npm workspace, so it has its own React Native dependency tree. It shares `@fatoura/shared` through Metro and tsconfig settings.
+- **Translations:** the Arabic and English dictionaries live in `@fatoura/shared`, so the web and mobile apps use the same wording.

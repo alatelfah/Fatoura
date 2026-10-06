@@ -1,0 +1,116 @@
+{
+  "description": "Shared document-math fixtures (BRD §5). Consumed by backend/tests/Fatoura.UnitTests and clients/shared. Decimal values are strings to avoid float parsing.",
+  "standardRate": "0.05",
+  "cases": [
+    {
+      "name": "Reference invoice (Aura Suites Downtown 260819)",
+      "lines": [
+        { "qty": "20", "unitPrice": "2050.00", "tax": "Standard" },
+        { "qty": "20", "unitPrice": "250.00", "tax": "Standard" }
+      ],
+      "expected": {
+        "lines": [
+          { "net": "41000.00", "vat": "2050.00", "total": "43050.00" },
+          { "net": "5000.00", "vat": "250.00", "total": "5250.00" }
+        ],
+        "subTotal": "46000.00",
+        "vatTotal": "2300.00",
+        "total": "48300.00"
+      }
+    },
+    {
+      "name": "Fractional quantity rounds net half away from zero",
+      "lines": [{ "qty": "2.5", "unitPrice": "19.99", "tax": "Standard" }],
+      "expected": {
+        "lines": [{ "net": "49.98", "vat": "2.50", "total": "52.48" }],
+        "subTotal": "49.98",
+        "vatTotal": "2.50",
+        "total": "52.48"
+      }
+    },
+    {
+      "name": "VAT midpoints round away from zero",
+      "lines": [
+        { "qty": "1", "unitPrice": "0.10", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "0.30", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "10.10", "tax": "Standard" }
+      ],
+      "expected": {
+        "lines": [
+          { "net": "0.10", "vat": "0.01", "total": "0.11" },
+          { "net": "0.30", "vat": "0.02", "total": "0.32" },
+          { "net": "10.10", "vat": "0.51", "total": "10.61" }
+        ],
+        "subTotal": "10.50",
+        "vatTotal": "0.54",
+        "total": "11.04"
+      }
+    },
+    {
+      "name": "Mixed tax categories: only standard-rated lines carry VAT",
+      "lines": [
+        { "qty": "1", "unitPrice": "100.00", "tax": "Standard" },
+        { "qty": "2", "unitPrice": "50.00", "tax": "ZeroRated" },
+        { "qty": "1", "unitPrice": "30.00", "tax": "Exempt" }
+      ],
+      "expected": {
+        "lines": [
+          { "net": "100.00", "vat": "5.00", "total": "105.00" },
+          { "net": "100.00", "vat": "0.00", "total": "100.00" },
+          { "net": "30.00", "vat": "0.00", "total": "30.00" }
+        ],
+        "subTotal": "230.00",
+        "vatTotal": "5.00",
+        "total": "235.00"
+      }
+    },
+    {
+      "name": "Total VAT is the sum of rounded line VAT (matches the printed Vat column)",
+      "lines": [
+        { "qty": "1", "unitPrice": "0.10", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "0.10", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "0.10", "tax": "Standard" }
+      ],
+      "expected": {
+        "lines": [
+          { "net": "0.10", "vat": "0.01", "total": "0.11" },
+          { "net": "0.10", "vat": "0.01", "total": "0.11" },
+          { "net": "0.10", "vat": "0.01", "total": "0.11" }
+        ],
+        "subTotal": "0.30",
+        "vatTotal": "0.03",
+        "total": "0.33"
+      }
+    },
+    {
+      "name": "Three-decimal quantity",
+      "lines": [{ "qty": "1.125", "unitPrice": "8.00", "tax": "Standard" }],
+      "expected": {
+        "lines": [{ "net": "9.00", "vat": "0.45", "total": "9.45" }],
+        "subTotal": "9.00",
+        "vatTotal": "0.45",
+        "total": "9.45"
+      }
+    },
+    {
+      "name": "Large amounts keep full precision",
+      "lines": [{ "qty": "1000", "unitPrice": "99999.99", "tax": "Standard" }],
+      "expected": {
+        "lines": [{ "net": "99999990.00", "vat": "4999999.50", "total": "104999989.50" }],
+        "subTotal": "99999990.00",
+        "vatTotal": "4999999.50",
+        "total": "104999989.50"
+      }
+    },
+    {
+      "name": "Zero price line (free item)",
+      "lines": [{ "qty": "3", "unitPrice": "0.00", "tax": "Standard" }],
+      "expected": {
+        "lines": [{ "net": "0.00", "vat": "0.00", "total": "0.00" }],
+        "subTotal": "0.00",
+        "vatTotal": "0.00",
+        "total": "0.00"
+      }
+    }
+  ]
+}

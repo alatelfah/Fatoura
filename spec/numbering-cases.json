@@ -1,0 +1,33 @@
+{
+  "description": "Document number pattern fixtures. Consumed by backend unit tests and clients/shared.",
+  "format": [
+    { "pattern": "INV/{MON}/{YY}{SEQ:4}", "date": "2026-09-01", "seq": 1, "expected": "INV/SEP/260001" },
+    { "pattern": "INV/{MON}/{YY}{SEQ:4}", "date": "2026-12-31", "seq": 12345, "expected": "INV/DEC/2612345" },
+    { "pattern": "RIHM/{MON}/{YY}{MM}{SEQ:2}", "date": "2026-08-19", "seq": 19, "expected": "RIHM/AUG/260819" },
+    { "pattern": "{YYYY}-{MM}-{DD}-{SEQ}", "date": "2027-01-05", "seq": 7, "expected": "2027-01-05-7" },
+    { "pattern": "Q{SEQ:6}", "date": "2026-02-28", "seq": 42, "expected": "Q000042" }
+  ],
+  "resetKey": [
+    { "reset": "Never", "date": "2026-09-01", "expected": "-" },
+    { "reset": "Yearly", "date": "2026-09-01", "expected": "2026" },
+    { "reset": "Monthly", "date": "2026-09-01", "expected": "2026-09" }
+  ],
+  "invalid": [
+    { "pattern": "", "reset": "Never" },
+    { "pattern": "INV-0001", "reset": "Never" },
+    { "pattern": "INV-{SEQ}-{SEQ}", "reset": "Never" },
+    { "pattern": "INV-{FOO}{SEQ}", "reset": "Never" },
+    { "pattern": "INV-{YY:2}{SEQ}", "reset": "Never" },
+    { "pattern": "INV-{SEQ:0}", "reset": "Never" },
+    { "pattern": "INV-{SEQ:11}", "reset": "Never" },
+    { "pattern": "INV-{SEQ", "reset": "Never" },
+    { "pattern": "INV-{SEQ}", "reset": "Yearly" },
+    { "pattern": "INV-{YY}{SEQ}", "reset": "Monthly" },
+    { "pattern": "INV-THIS-PATTERN-IS-FAR-TOO-LONG-TO-ACCEPT-{SEQ}", "reset": "Never" }
+  ],
+  "valid": [
+    { "pattern": "INV/{MON}/{YY}{SEQ:4}", "reset": "Yearly" },
+    { "pattern": "INV/{YYYY}{MM}{SEQ:3}", "reset": "Monthly" },
+    { "pattern": "INV{SEQ}", "reset": "Never" }
+  ]
+}

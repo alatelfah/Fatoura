@@ -1,0 +1,90 @@
+# Design decisions
+
+This file records the decisions that fill gaps in, or adjust, the [BRD](./BRD.md). Each one gives the reason.
+
+The product owner made the decisions marked **(owner)**. The others are the implementer's recommended defaults, which the owner pre-approved ("go with your recommendation").
+
+## Stack
+- **(owner)** The backend is ASP.NET Core (.NET 10 LTS) with EF Core on Microsoft SQL Server. The web app is React and the mobile app is React Native (Expo).
+- The backend has two projects: `Fatoura.Domain` (pure rules, no dependencies) and `Fatoura.Api` (HTTP, EF Core, PDF, Excel). At this size, separate Application and Infrastructure layers would only add interfaces with a single implementation.
+- MediatR, AutoMapper and FluentAssertions are not used because they moved to commercial licences in 2025. Tests use xUnit v3 and Shouldly.
+
+## Language
+- **(owner)** The UI is bilingual (Arabic and English) with full right-to-left support for Arabic.
+- Printed documents (invoice, quotation, credit note) are in English, as the BRD specifies. Arabic text in client names or descriptions still prints correctly through a fallback Arabic font.
+- Digits are Latin (0-9) in both languages, as is normal for UAE business documents.
+
+## VAT and amounts (BRD §5)
+- **Tax category:** "Taxable yes/no" becomes a tax category of **Standard (5%)**, **Zero-rated** or **Exempt**. The FTA VAT return (VAT 201) reports zero-rated and exempt supplies in separate boxes, so a yes/no flag isn't enough.
+- **Line math:**
+  - `Line Net = round2(Qty × Unit Price)`
+  - `Line VAT = round2(Line Net × rate)`
+  - `Line Amount = Line Net + Line VAT`
+  - Rounding is to 2 decimals, half away from zero.
+- **Total VAT = Σ Line VAT.** The BRD's `Sub Total × 5%` gives the same result when every line is standard-rated, as in the reference invoice (46,000.00 → 2,300.00). Summing the lines keeps the printed "Vat" column adding up to the printed total, and it handles zero-rated and exempt lines correctly.
+- **Server is authoritative:** the server recalculates every amount and ignores totals sent by a client. The web and mobile apps use the same formulas only for live previews.
+- **Shared fixtures:** the C# and TypeScript implementations are tested against the same fixtures in `spec/calc-cases.json`.
+- **Precision:**
+  - Amounts are stored as `decimal(18,2)` and quantities as `decimal(18,3)`.
+  - Unit prices have at most 2 decimals (fils).
+  - Quantities have at most 3 decimals.
+
+## TRN validation
+- **Rule:** a TRN must be exactly 15 digits **starting with "10"**. Spaces and dashes are ignored.
+- **Why not "100":** the BRD says TRNs "usually start with 100". But both TRNs in the reference invoice (`105386581000003` for the company, `105325228200003` for the client) start with `105`, so requiring `100` would reject real, valid TRNs.
+- **Required where:** the company TRN is required. A client's TRN is optional, because walk-in consumers are not VAT-registered, but it is validated whenever it is entered.
+
+## Document numbers
+- **Configurable pattern:** each document type (Invoice, Quotation, Credit Note, Purchase) has its own pattern, made of these tokens plus any literal text:
+  - `{YYYY}`, `{YY}`, `{MM}`, `{MON}`, `{DD}`
+  - `{SEQ}` or `{SEQ:n}`
+- **Defaults:** `INV/{MON}/{YY}{SEQ:4}` (for example `INV/SEP/260001`), `QUO/…`, `CN/…` and `PUR/…`, each resetting yearly. The reference number `RIHM/AUG/260819` can be reproduced with `RIHM/{MON}/{YY}{MM}{SEQ:2}`.
+- **Gap-free counters:** numbers come from a counter per (document type, reset period) that is incremented atomically inside the same transaction that saves the document. The FTA requires sequential, unique tax invoice numbers.
+- **No invoice drafts:** an invoice gets its number only when it is issued. Quotations serve as drafts.
+
+## Deleting and editing invoices
+- **(owner)** Admin "delete" of an issued invoice is a **Void**:
+  - The invoice keeps its number and must have a reason.
+  - It prints with a VOID watermark and is excluded from all totals and reports.
+  - Its stock is returned.
+  - The action is written to the audit log.
+  - This keeps the number sequence free of gaps, as the FTA requires.
+- **Admin edits:** an Admin may edit an issued invoice. The number and the issue snapshot stay the same, totals are recalculated, stock is re-applied, and the change is audited.
+- **Cashiers** can never edit or void an invoice. They can issue a **Tax Credit Note** against it (BRD §2).
+
+## Cashier visibility
+- **(owner)** Cashiers can view all invoices and quotations read-only, for example to reprint them or to issue a credit note. Their dashboard shows only their own sales.
+- **"Shift sales":** a cashier's own invoices for the current calendar day in Asia/Dubai time.
+
+## Stock
+- **(owner)** Products can track stock:
+  - Purchases add to stock.
+  - Invoices take from stock.
+  - Credit notes return stock when "return to stock" is ticked.
+  - Voids return stock.
+  - Admin adjustments are recorded with a reason.
+- **(owner)** If an invoice would take stock below zero, the user sees a **warning but the sale is allowed** by default. A Settings toggle can switch this to block the sale.
+- **Ledger:** the `StockMovements` table is the record of truth. `Items.StockQty` is a cached value updated atomically in the same transaction.
+- **Low-stock alert:** shown on the Admin dashboard when `StockQty ≤ ReorderLevel`.
+
+## Payments
+- **Why payments exist:** the BRD's "open invoices" count needs a balance, so invoices record payments (amount, date, method: Cash, Card, Bank Transfer or Cheque).
+- **Balance:** Total − credit notes − payments.
+- **Default:** a new invoice defaults to "paid in full – Cash" so simple counter sales stay one click.
+
+## Reports
+- **Profit & Loss** follows the BRD: net sales excluding VAT (invoices − credit notes) − purchases excluding VAT. Each invoice line also stores its cost at the time of sale, so a cost-of-goods P&L can be added later without migrating data.
+- **VAT report** lists output VAT (invoices − credit notes) and input VAT (purchases), grouped like the VAT 201 return: standard-rated, zero-rated and exempt supplies, standard-rated expenses, and net VAT payable. Box 1 is split by the company's emirate.
+
+## Company settings
+- **Address and emirate added:** the BRD's company fields gain an **address** and an **emirate**. UAE tax invoices must show the supplier's address, and the VAT return splits sales by emirate. The address prints in the header block.
+- **Stamp image:** a company stamp image can be uploaded and is printed in the "Stamp & Signature" area. Without one, an empty box is printed for a physical stamp.
+
+## PDF
+- **(owner)** PDFs are produced on the server with QuestPDF (Community licence: free for organisations with under USD 1M annual gross revenue). Larger organisations need a QuestPDF commercial licence.
+- **Layout:** matches the reference invoice: US Letter landscape, a Calibri-compatible font (Carlito, OFL), the same blocks, table columns and footer order.
+- **Same PDF everywhere:** the web and mobile apps both download the PDF from the server, so every copy is identical.
+
+## Out of scope for v1
+- Discounts (FTA rules would require them to be shown on the invoice), multi-currency, and FTA e-invoicing (PINT-AE through an accredited provider).
+- Settings and user management are web-only. The mobile app covers daily operations, the dashboard and read-only reports.

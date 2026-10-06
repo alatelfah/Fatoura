@@ -1,0 +1,40 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Expo / React Native
+.expo/
+web-build/
+clients/mobile/android/
+clients/mobile/ios/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

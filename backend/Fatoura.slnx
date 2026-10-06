@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Fatoura.Api/Fatoura.Api.csproj" />
+    <Project Path="src/Fatoura.Domain/Fatoura.Domain.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Fatoura.IntegrationTests/Fatoura.IntegrationTests.csproj" />
+    <Project Path="tests/Fatoura.UnitTests/Fatoura.UnitTests.csproj" />
+  </Folder>
+</Solution>

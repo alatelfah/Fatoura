@@ -1,0 +1,5 @@
+{
+  "description": "UAE TRN validation fixtures (15 digits, starting with 10). Spaces and dashes are ignored.",
+  "valid": ["105386581000003", "105325228200003", "100123456789012", "100 1234 5678 9012", "100-123-456-789-012"],
+  "invalid": ["", "10538658100000", "1053865810000034", "205386581000003", "10538658100000A", "abcdefghijklmno", "015386581000003"]
+}

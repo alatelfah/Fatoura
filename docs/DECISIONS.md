@@ -106,3 +106,8 @@ The product owner made the decisions marked **(owner)**. The others are the impl
   - Reports export to Excel (.xlsx).
 - **Repository layout:** the mobile app lives in `/mobile`, outside the `clients/` npm workspace, so it has its own React Native dependency tree. It shares `@fatoura/shared` through Metro and tsconfig settings.
 - **Translations:** the Arabic and English dictionaries live in `@fatoura/shared`, so the web and mobile apps use the same wording.
+- **Security:**
+  - Login is rate-limited per client IP (20 per minute by default). Each account also locks for 15 minutes after 5 wrong passwords.
+  - Refresh tokens rotate on every use, and replaying an old one revokes the whole login.
+  - A replay within 30 seconds of rotation is accepted instead. This happens when two tabs refresh at the same moment, and accepting it avoids logging users out.
+  - The API trusts `X-Forwarded-For` from the nginx container in front of it. Don't expose the API port directly.

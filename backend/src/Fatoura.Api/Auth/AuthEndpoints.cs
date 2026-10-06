@@ -33,13 +33,14 @@ public sealed record AuthResponse(string AccessToken, DateTimeOffset AccessToken
 public static class AuthEndpoints
 {
     public const string RefreshCookie = "fatoura_rt";
+    public const string LoginRateLimit = "login";
     private const string CookiePath = "/api/auth";
 
     public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)
     {
         var group = api.MapGroup("/auth").WithTags("Auth");
 
-        group.MapPost("/login", Login).AllowAnonymous();
+        group.MapPost("/login", Login).AllowAnonymous().RequireRateLimiting(LoginRateLimit);
         group.MapPost("/refresh", Refresh).AllowAnonymous();
         group.MapPost("/logout", Logout).AllowAnonymous();
         group.MapGet("/me", Me).RequireAuthorization(Policies.Staff);

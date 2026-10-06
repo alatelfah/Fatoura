@@ -81,6 +81,8 @@ EXPO_PUBLIC_API_URL=http://<your-lan-ip>:5080 npx expo start
 | `ConnectionStrings__Fatoura` | SQL Server connection string |
 | `Jwt__SigningKey` | HMAC key, at least 32 characters (**required**; keep it secret) |
 | `Jwt__AccessTokenMinutes` / `Jwt__RefreshTokenDays` | Token lifetimes (defaults: 15 minutes / 14 days) |
+| `Jwt__RefreshReuseGraceSeconds` | How long a just-rotated refresh token may be replayed (two tabs refreshing at once) before reuse counts as theft (default 30) |
+| `RateLimiting__LoginPerMinute` | Login attempts allowed per client IP per minute (default 20; `0` disables). Accounts also lock for 15 minutes after 5 wrong passwords |
 | `Seed__AdminEmail` / `Seed__AdminPassword` / `Seed__AdminName` | First Admin, created only when no Admin exists |
 | `Database__Migrate` | Apply EF migrations at start-up (default `true`) |
 

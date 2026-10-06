@@ -41,6 +41,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
         builder.UseSetting("Seed:AdminName", "Test Admin");
         builder.UseSetting("Logging:LogLevel:Default", "Warning");
+        builder.UseSetting("RateLimiting:LoginPerMinute", "0");
     }
 
     public async Task<T> WithDbAsync<T>(Func<FatouraDbContext, Task<T>> action)

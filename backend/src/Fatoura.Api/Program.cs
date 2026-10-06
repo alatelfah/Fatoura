@@ -13,7 +13,9 @@ using Fatoura.Api.Purchases;
 using Fatoura.Api.Reports;
 using Fatoura.Api.Settings;
 using Fatoura.Api.Users;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -97,6 +99,26 @@ services.AddScoped<InvoiceService>();
 services.AddScoped<ReportService>();
 services.AddScoped<PdfService>();
 
+// Behind the nginx container the client address arrives in X-Forwarded-For.
+services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
+// Slows password guessing across accounts (per-account lockout covers guessing one account).
+var loginPerMinute = config.GetValue("RateLimiting:LoginPerMinute", 20);
+services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy(AuthEndpoints.LoginRateLimit, http => loginPerMinute <= 0
+        ? RateLimitPartition.GetNoLimiter("off")
+        : RateLimitPartition.GetFixedWindowLimiter(
+            http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPerMinute, Window = TimeSpan.FromMinutes(1) }));
+});
+
 // HTTP API
 services.ConfigureHttpJsonOptions(o =>
 {
@@ -115,10 +137,12 @@ services.AddOpenApi(o => o.AddDocumentTransformer((doc, _, _) =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapOpenApi().AllowAnonymous();
 if (app.Environment.IsDevelopment())

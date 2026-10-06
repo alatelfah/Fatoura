@@ -35,6 +35,20 @@ public class AuthTests(ApiFactory api) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Login_attempts_are_rate_limited_per_client()
+    {
+        using var limited = api.WithWebHostBuilder(b => b.UseSetting("RateLimiting:LoginPerMinute", "3"));
+        var client = limited.CreateClient();
+        var statuses = new List<HttpStatusCode>();
+        for (var i = 0; i < 4; i++)
+        {
+            statuses.Add((await client.PostAsJsonAsync("/api/auth/login", new { email = "nobody@test.local", password = "Whatever@123" })).StatusCode);
+        }
+
+        statuses.ShouldBe([HttpStatusCode.Unauthorized, HttpStatusCode.Unauthorized, HttpStatusCode.Unauthorized, HttpStatusCode.TooManyRequests]);
+    }
+
+    [Fact]
     public async Task Unknown_user_gets_the_same_error_as_a_wrong_password()
     {
         var r = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { email = "nobody@test.local", password = "Whatever@123" });

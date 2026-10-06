@@ -1,5 +1,6 @@
 using Fatoura.Api.Auth;
 using Fatoura.Api.Infrastructure;
+using Fatoura.Api.Settings;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Fatoura.Api.Reports;
@@ -15,6 +16,31 @@ public static class ReportEndpoints
         group.MapGet("/purchases", Purchases).RequireAuthorization(Policies.Admin);
         group.MapGet("/profit-loss", ProfitLoss).RequireAuthorization(Policies.Admin);
         group.MapGet("/vat", Vat).RequireAuthorization(Policies.Admin);
+
+        group.MapGet("/sales/export", async (DateOnly? from, DateOnly? to, Guid? cashierId, int? clientId, ReportService reports, SettingsService settings, ICurrentUser user, BusinessClock clock, CancellationToken ct) =>
+        {
+            var period = Period(from, to, clock);
+            var report = await reports.SalesAsync(period, user.IsAdmin ? cashierId : user.RequireId(), clientId, ct);
+            return Xlsx(ReportExcel.Sales(report, ReportExcel.CompanyName(await settings.GetAsync(ct))), ReportExcel.FileName("sales", period));
+        }).RequireAuthorization(Policies.Staff);
+        group.MapGet("/purchases/export", async (DateOnly? from, DateOnly? to, int? supplierId, ReportService reports, SettingsService settings, BusinessClock clock, CancellationToken ct) =>
+        {
+            var period = Period(from, to, clock);
+            var report = await reports.PurchasesAsync(period, supplierId, ct);
+            return Xlsx(ReportExcel.Purchases(report, ReportExcel.CompanyName(await settings.GetAsync(ct))), ReportExcel.FileName("purchases", period));
+        }).RequireAuthorization(Policies.Admin);
+        group.MapGet("/profit-loss/export", async (DateOnly? from, DateOnly? to, ReportService reports, SettingsService settings, BusinessClock clock, CancellationToken ct) =>
+        {
+            var period = Period(from, to, clock);
+            var report = await reports.ProfitLossAsync(period, ct);
+            return Xlsx(ReportExcel.ProfitLoss(report, ReportExcel.CompanyName(await settings.GetAsync(ct))), ReportExcel.FileName("profit-loss", period));
+        }).RequireAuthorization(Policies.Admin);
+        group.MapGet("/vat/export", async (DateOnly? from, DateOnly? to, ReportService reports, SettingsService settings, BusinessClock clock, CancellationToken ct) =>
+        {
+            var period = Period(from, to, clock);
+            var report = await reports.VatAsync(period, ct);
+            return Xlsx(ReportExcel.Vat(report, ReportExcel.CompanyName(await settings.GetAsync(ct))), ReportExcel.FileName("vat", period));
+        }).RequireAuthorization(Policies.Admin);
         return group;
     }
 
@@ -30,6 +56,8 @@ public static class ReportEndpoints
             .ThrowIfInvalid();
         return new ReportPeriod(start, end);
     }
+
+    private static FileContentHttpResult Xlsx(byte[] bytes, string fileName) => TypedResults.File(bytes, ReportExcel.ContentType, fileName);
 
     private static async Task<Ok<SalesReportDto>> Sales(
         DateOnly? from, DateOnly? to, Guid? cashierId, int? clientId, ReportService reports, ICurrentUser user, BusinessClock clock, CancellationToken ct)

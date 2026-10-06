@@ -8,6 +8,7 @@ using Fatoura.Api.Documents;
 using Fatoura.Api.Infrastructure;
 using Fatoura.Api.Inventory;
 using Fatoura.Api.Items;
+using Fatoura.Api.Pdf;
 using Fatoura.Api.Purchases;
 using Fatoura.Api.Reports;
 using Fatoura.Api.Settings;
@@ -94,6 +95,7 @@ services.AddScoped<StockService>();
 services.AddScoped<SequenceService>();
 services.AddScoped<InvoiceService>();
 services.AddScoped<ReportService>();
+services.AddScoped<PdfService>();
 
 // HTTP API
 services.ConfigureHttpJsonOptions(o =>
@@ -138,6 +140,7 @@ api.MapCreditNoteEndpoints();
 api.MapPurchaseEndpoints();
 api.MapReportEndpoints();
 api.MapDashboardEndpoints();
+api.MapPdfEndpoints();
 
 if (config.GetValue("Database:Initialize", true) && !generatingOpenApi)
 {

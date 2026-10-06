@@ -31,8 +31,17 @@ export const tokens = {
   clear: () => storage.remove(REFRESH_KEY),
 };
 
-/** Mobile session: refresh token (rotated on every use) in secure storage, access token in memory. */
-export async function refreshSession(): Promise<Schemas['AuthResponse'] | null> {
+let refreshing: Promise<Schemas['AuthResponse'] | null> | null = null;
+
+/** Mobile session: refresh token (rotated on every use) in secure storage, access token in memory. Concurrent callers share one request. */
+export function refreshSession(): Promise<Schemas['AuthResponse'] | null> {
+  refreshing ??= doRefresh().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+async function doRefresh(): Promise<Schemas['AuthResponse'] | null> {
   const refreshToken = await tokens.getRefresh();
   if (!refreshToken) return null;
   const response = await fetch(`${API_URL}/api/auth/refresh`, {

@@ -58,7 +58,7 @@
     "preset": "jest-expo",
     "moduleNameMapper": {
       "^@fatoura/shared$": "<rootDir>/../clients/shared/src/index.ts",
-      "^(big\\.js|openapi-fetch|openapi-react-query|@tanstack/react-query)$": "<rootDir>/node_modules/$1"
+      "^(big\\.js|openapi-fetch|openapi-react-query|@tanstack/react-query|@babel/runtime/.*)$": "<rootDir>/node_modules/$1"
     },
     "testPathIgnorePatterns": [
       "/node_modules/",

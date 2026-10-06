@@ -20,4 +20,11 @@ public sealed class JwtOptions
 
     [Range(1, 365)]
     public int RefreshTokenDays { get; set; } = 14;
+
+    /// <summary>
+    /// A rotated refresh token presented again within this many seconds is treated as a benign race
+    /// (two tabs or requests refreshing at once) rather than theft. 0 disables the grace period.
+    /// </summary>
+    [Range(0, 300)]
+    public int RefreshReuseGraceSeconds { get; set; } = 30;
 }

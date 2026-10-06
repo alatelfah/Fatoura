@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Fatoura.Api.Auth;
 using Fatoura.IntegrationTests.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 
 namespace Fatoura.IntegrationTests;
 
@@ -42,7 +44,9 @@ public class AuthTests(ApiFactory api) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Mobile_refresh_rotates_and_reuse_revokes_the_whole_family()
     {
-        var client = api.CreateClient();
+        // No grace period: any replay of a rotated token is treated as theft.
+        using var strict = api.WithWebHostBuilder(b => b.UseSetting("Jwt:RefreshReuseGraceSeconds", "0"));
+        var client = strict.CreateClient();
         var login = await (await client.PostAsJsonAsync("/api/auth/login",
             new { email = ApiFactory.AdminEmail, password = ApiFactory.AdminPassword, client = "Mobile" })).ReadAsync<AuthResponse>();
         login.RefreshToken.ShouldNotBeNullOrEmpty();
@@ -57,6 +61,35 @@ public class AuthTests(ApiFactory api) : IClassFixture<ApiFactory>
         // ...and kills the legitimate successor too.
         var successor = await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = first.RefreshToken });
         successor.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Concurrent_refresh_with_the_same_token_keeps_the_session()
+    {
+        var client = api.CreateClient();
+        var login = await (await client.PostAsJsonAsync("/api/auth/login",
+            new { email = ApiFactory.AdminEmail, password = ApiFactory.AdminPassword, client = "Mobile" })).ReadAsync<AuthResponse>();
+
+        // Two tabs/requests refresh at once with the same token: both succeed (within the reuse grace period)...
+        var first = await (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = login.RefreshToken })).ReadAsync<AuthResponse>();
+        var second = await (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = login.RefreshToken })).ReadAsync<AuthResponse>();
+
+        // ...and both resulting tokens keep working.
+        (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = first.RefreshToken })).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = second.RefreshToken })).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task A_logged_out_token_cannot_be_reused_even_within_the_grace_period()
+    {
+        var client = api.CreateClient();
+        var login = await (await client.PostAsJsonAsync("/api/auth/login",
+            new { email = ApiFactory.AdminEmail, password = ApiFactory.AdminPassword, client = "Mobile" })).ReadAsync<AuthResponse>();
+        var rotated = await (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = login.RefreshToken })).ReadAsync<AuthResponse>();
+        (await client.PostAsJsonAsync("/api/auth/logout", new { refreshToken = rotated.RefreshToken })).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = login.RefreshToken })).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        (await client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = rotated.RefreshToken })).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

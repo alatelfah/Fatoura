@@ -84,6 +84,12 @@ public sealed class TokenService(
 
         if (stored.RevokedAt is not null)
         {
+            if (await IsBenignReuseAsync(stored, now, ct) && stored.User.IsActive)
+            {
+                // Two refreshes raced with the same token (e.g. two tabs reloading): continue the same login.
+                return (stored.User, await IssueAsync(stored.User, stored.FamilyId, ct));
+            }
+
             // A rotated token was presented again: assume it was stolen and revoke every token from that login.
             await RevokeFamilyAsync(stored.FamilyId, ct);
             return null;
@@ -116,6 +122,13 @@ public sealed class TokenService(
     public Task RevokeAllForUserAsync(Guid userId, CancellationToken ct = default) =>
         db.RefreshTokens.Where(t => t.UserId == userId && t.RevokedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, time.GetUtcNow()), ct);
+
+    /// <summary>Reuse is benign only shortly after a normal rotation, and only while the login itself is still alive.</summary>
+    private async Task<bool> IsBenignReuseAsync(RefreshToken stored, DateTimeOffset now, CancellationToken ct) =>
+        stored.ReplacedById is not null
+        && stored.RevokedAt is { } revokedAt
+        && now - revokedAt <= TimeSpan.FromSeconds(_options.RefreshReuseGraceSeconds)
+        && await db.RefreshTokens.AnyAsync(t => t.FamilyId == stored.FamilyId && t.RevokedAt == null && t.ExpiresAt > now, ct);
 
     private Task RevokeFamilyAsync(Guid familyId, CancellationToken ct) =>
         db.RefreshTokens.Where(t => t.FamilyId == familyId && t.RevokedAt == null)

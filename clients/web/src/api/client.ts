@@ -23,12 +23,20 @@ export interface AuthResult {
   user: UserInfo;
 }
 
-export async function refreshSession(): Promise<AuthResult | null> {
-  const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
-  if (!response.ok) return null;
-  const body = (await response.json()) as Schemas['AuthResponse'];
-  accessToken = body.accessToken;
-  return { accessToken: body.accessToken, user: body.user };
+let refreshing: Promise<AuthResult | null> | null = null;
+
+/** Renews the access token from the refresh cookie; concurrent callers share one request. */
+export function refreshSession(): Promise<AuthResult | null> {
+  refreshing ??= (async () => {
+    const response = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'same-origin' });
+    if (!response.ok) return null;
+    const body = (await response.json()) as Schemas['AuthResponse'];
+    accessToken = body.accessToken;
+    return { accessToken: body.accessToken, user: body.user };
+  })().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
 }
 
 export const { fetchClient, $api } = createApiClient({

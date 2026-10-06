@@ -1,8 +1,11 @@
 using System.Text.Json.Serialization;
 using Fatoura.Api.Auth;
+using Fatoura.Api.Contacts;
 using Fatoura.Api.Data;
 using Fatoura.Api.Data.Entities;
 using Fatoura.Api.Infrastructure;
+using Fatoura.Api.Inventory;
+using Fatoura.Api.Items;
 using Fatoura.Api.Settings;
 using Fatoura.Api.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,6 +18,13 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var config = builder.Configuration;
+
+// The build-time OpenAPI generator (GetDocument.Insider) starts the app without a database or secrets.
+var generatingOpenApi = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (generatingOpenApi)
+{
+    config.AddInMemoryCollection([new("Jwt:SigningKey", "openapi-generation-placeholder-signing-key")]);
+}
 
 services.AddSingleton(TimeProvider.System);
 services.AddSingleton<BusinessClock>();
@@ -76,6 +86,7 @@ services.AddAuthorizationBuilder()
 
 services.AddScoped<TokenService>();
 services.AddScoped<SettingsService>();
+services.AddScoped<StockService>();
 
 // HTTP API
 services.ConfigureHttpJsonOptions(o =>
@@ -111,8 +122,11 @@ api.MapGet("/health", () => TypedResults.Ok(new HealthResponse("ok"))).AllowAnon
 api.MapAuthEndpoints();
 api.MapUserEndpoints();
 api.MapSettingsEndpoints();
+api.MapClientEndpoints();
+api.MapSupplierEndpoints();
+api.MapItemEndpoints();
 
-if (config.GetValue("Database:Initialize", true))
+if (config.GetValue("Database:Initialize", true) && !generatingOpenApi)
 {
     await DbInitializer.InitializeAsync(app.Services, migrate: config.GetValue("Database:Migrate", true));
 }

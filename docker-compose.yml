@@ -17,6 +17,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+      # The first start (creating the system databases) can take minutes on Docker Desktop for Windows/macOS.
+      start_period: 180s
+      start_interval: 5s
     restart: unless-stopped
 
   api:

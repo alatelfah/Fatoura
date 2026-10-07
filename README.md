@@ -46,6 +46,8 @@ Then:
    To issue documents in other currencies, add them with their AED rates under **Settings → Currencies**.
 2. Add cashiers under **Users**.
 
+> If `docker compose up` reports that port 1433 (or 8080) is already allocated, set `MSSQL_PORT` (or `WEB_PORT`) in `.env` to a free port, e.g. `MSSQL_PORT=14330`.
+
 > In production, serve the site over **HTTPS**. The session cookie is `Secure`, so browsers accept it only over HTTPS, or over plain HTTP on `localhost`.
 
 ### Option B: local development

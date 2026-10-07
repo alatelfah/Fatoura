@@ -53,6 +53,8 @@ const en = {
     completionOfWork: 'Completion of work', notes: 'Notes (one per line)', closingText: 'Closing text',
     createdBy: 'Created by', paid: 'Paid', credited: 'Credited', balance: 'Balance due', noLines: 'Add at least one line',
     stockWarning: 'Stock for "{{name}}" is now {{qty}}.', settingsIncomplete: 'Complete the company details in Settings first.',
+    discount: 'Discount', discountNone: 'No discount', discountAmount: 'Amount (AED)', discountPercent: 'Percent (%)',
+    totalExclVat: 'Total excl. VAT', discountShare: 'after {{amount}} discount',
   },
   quotation: {
     title: 'Quotations', new: 'New quotation', edit: 'Edit quotation', convert: 'Convert to invoice',

@@ -57,13 +57,13 @@ public class DocumentOutputTests(ApiFactory api) : IClassFixture<ApiFactory>, IA
     public void Long_documents_flow_onto_further_pages_and_arabic_text_renders()
     {
         var lines = Enumerable.Range(1, 60)
-            .Select(i => new PrintLine(i, i % 3 == 0 ? $"خدمة رقم {i} - Service line {i}" : $"Service line {i} with a reasonably long description to wrap", 1.5m, 99.99m, 7.50m, 157.48m))
+            .Select(i => new PrintLine(i, i % 3 == 0 ? $"خدمة رقم {i} - Service line {i}" : $"Service line {i} with a reasonably long description to wrap", 1.5m, 99.99m, 0m, 7.50m, 157.48m))
             .ToList();
-        lines.Add(new PrintLine(61, new string('X', 1000), 1, 1, 0, 1)); // an unbreakable 1000-character description
+        lines.Add(new PrintLine(61, new string('X', 1000), 1, 1, 0, 0, 1)); // an unbreakable 1000-character description
         var doc = new PrintDocument(
             "Tax Invoice", "Invoice No:", "INV/OCT/260001", new DateOnly(2026, 10, 1),
             new PrintCompany("Test Co", "Dubai", "+971", "a@b.c", "x.ae", "100123456789012", null, null),
-            new PrintParty("شركة الواحة", "دبي", "", ""), [], lines, 8998.20m, "VAT 5%", 449.91m, 9448.11m,
+            new PrintParty("شركة الواحة", "دبي", "", ""), [], lines, 0m, 8998.20m, "VAT 5%", 449.91m, 9448.11m,
             new PrintTerms("50% advance", "2 weeks", ["One", "Two"], "Thanks"), IsVoid: true);
 
         var pdf = PdfService.Render(doc);

@@ -38,6 +38,7 @@ export default function QuotationScreen() {
           date={q.date}
           client={q.client}
           lines={q.lines}
+          discount={q.discount.amount}
           subTotal={q.subTotal}
           vatTotal={q.vatTotal}
           total={q.total}

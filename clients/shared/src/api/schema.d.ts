@@ -2672,6 +2672,8 @@ export interface components {
             client: components["schemas"]["PartyDto"];
             company: components["schemas"]["CompanyDto"];
             /** Format: double */
+            discount: number;
+            /** Format: double */
             subTotal: number;
             /** Format: double */
             vatTotal: number;
@@ -2701,6 +2703,8 @@ export interface components {
             taxCategory: components["schemas"]["TaxCategory"];
             /** Format: double */
             vatRate: number;
+            /** Format: double */
+            discount: number;
             /** Format: double */
             net: number;
             /** Format: double */
@@ -2747,6 +2751,22 @@ export interface components {
             total: number;
             createdByName: string;
         };
+        /** @enum {unknown} */
+        DiscountKind: "None" | "Amount" | "Percent";
+        /** @description The discount as entered, and `Amount`, its value in money. The sub total before discount is `SubTotal + Amount`. */
+        DocumentDiscountDto: {
+            kind: components["schemas"]["DiscountKind"];
+            /** Format: double */
+            value: number;
+            /** Format: double */
+            amount: number;
+        };
+        /** @description A document-level discount: `Kind` Amount (AED) or Percent (of the sub total); omit or use None for no discount. */
+        DocumentDiscountRequest: {
+            kind: components["schemas"]["DiscountKind"];
+            /** Format: double */
+            value: number;
+        };
         DocumentLineDto: {
             /** Format: int32 */
             id: number;
@@ -2762,6 +2782,8 @@ export interface components {
             taxCategory: components["schemas"]["TaxCategory"];
             /** Format: double */
             vatRate: number;
+            /** Format: double */
+            discount: number;
             /** Format: double */
             net: number;
             /** Format: double */
@@ -2812,6 +2834,7 @@ export interface components {
             /** Format: date-time */
             voidedAt: null | string;
             terms: components["schemas"]["TermsDto"];
+            discount: components["schemas"]["DocumentDiscountDto"];
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -2848,6 +2871,8 @@ export interface components {
             taxCategory: components["schemas"]["TaxCategory"];
             /** Format: double */
             vatRate: number;
+            /** Format: double */
+            discount: number;
             /** Format: double */
             net: number;
             /** Format: double */
@@ -2891,6 +2916,7 @@ export interface components {
             lines: components["schemas"]["DocumentLineRequest"][];
             terms: null | components["schemas"]["TermsRequest"];
             payment: null | components["schemas"]["PaymentRequest"];
+            discount?: null | components["schemas"]["DocumentDiscountRequest"];
         };
         ItemDto: {
             /** Format: int32 */
@@ -3214,6 +3240,7 @@ export interface components {
             convertedInvoiceId: null | number;
             convertedInvoiceNumber: null | string;
             terms: components["schemas"]["TermsDto"];
+            discount: components["schemas"]["DocumentDiscountDto"];
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -3236,6 +3263,7 @@ export interface components {
             validUntil: null | string;
             lines: components["schemas"]["DocumentLineRequest"][];
             terms: null | components["schemas"]["TermsRequest"];
+            discount?: null | components["schemas"]["DocumentDiscountRequest"];
         };
         /** @enum {unknown} */
         QuotationStatus: "Draft" | "Sent" | "Accepted" | "Rejected" | "Converted";
@@ -3432,6 +3460,7 @@ export interface components {
             date: string;
             lines: components["schemas"]["DocumentLineRequest"][];
             terms: null | components["schemas"]["TermsRequest"];
+            discount?: null | components["schemas"]["DocumentDiscountRequest"];
         };
         UpdateNumberingRequest: {
             documentType: components["schemas"]["DocumentType"];

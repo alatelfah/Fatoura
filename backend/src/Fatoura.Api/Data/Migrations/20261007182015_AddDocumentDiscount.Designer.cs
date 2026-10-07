@@ -4,6 +4,7 @@ using Fatoura.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fatoura.Api.Data.Migrations
 {
     [DbContext(typeof(FatouraDbContext))]
-    partial class FatouraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007182015_AddDocumentDiscount")]
+    partial class AddDocumentDiscount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -5,11 +5,20 @@ import type { Schemas } from '../lib/api';
 import { formatDate, formatQty } from '../lib/format';
 import { Ltr, Money, Row } from './ui';
 
-type Line = { id: number; lineNo: number; description: string; quantity: number; unitPrice: number; vat: number; total: number };
+type Line = { id: number; lineNo: number; description: string; quantity: number; unitPrice: number; discount?: number; vat: number; total: number };
 
 /** Read-only document summary: header, client, lines and totals. */
-export function DocumentDetails({ number, date, client, lines, subTotal, vatTotal, total, extra }: {
-  number: string; date: string; client: Schemas['PartyDto']; lines: Line[]; subTotal: number; vatTotal: number; total: number; extra?: Array<[string, React.ReactNode]>;
+export function DocumentDetails({ number, date, client, lines, discount = 0, subTotal, vatTotal, total, extra }: {
+  number: string;
+  date: string;
+  client: Schemas['PartyDto'];
+  lines: Line[];
+  /** Document discount in money; sub total is shown before it. */
+  discount?: number;
+  subTotal: number;
+  vatTotal: number;
+  total: number;
+  extra?: Array<[string, React.ReactNode]>;
 }) {
   const { t } = useTranslation();
   return (
@@ -31,13 +40,19 @@ export function DocumentDetails({ number, date, client, lines, subTotal, vatTota
             <View key={l.id}>
               <Text>{l.lineNo}. {l.description}</Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ opacity: 0.7, writingDirection: 'ltr' }}>{formatQty(l.quantity)} × {l.unitPrice.toFixed(2)} · VAT {l.vat.toFixed(2)}</Text>
+                <Text style={{ opacity: 0.7, writingDirection: 'ltr' }}>{formatQty(l.quantity)} × {l.unitPrice.toFixed(2)}{l.discount ? ` − ${l.discount.toFixed(2)}` : ''} · VAT {l.vat.toFixed(2)}</Text>
                 <Money value={l.total} bold />
               </View>
             </View>
           ))}
           <Divider />
-          <Row label={t('doc.subTotal')}><Money value={subTotal} /></Row>
+          <Row label={t('doc.subTotal')}><Money value={subTotal + discount} /></Row>
+          {discount !== 0 && (
+            <>
+              <Row label={t('doc.discount')}><Money value={-discount} testID="doc-discount" /></Row>
+              <Row label={t('doc.totalExclVat')}><Money value={subTotal} /></Row>
+            </>
+          )}
           <Row label={t('doc.vatTotal')}><Money value={vatTotal} /></Row>
           <Row label={t('doc.total')}><Money value={total} bold testID="doc-total" /></Row>
         </Card.Content>

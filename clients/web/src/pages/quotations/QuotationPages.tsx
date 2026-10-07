@@ -151,6 +151,8 @@ export function QuotationViewPage() {
           ...(q.convertedInvoiceId ? [{ label: t('quotation.invoice'), value: <Link to={`/invoices/${q.convertedInvoiceId}`}><Ltr>{q.convertedInvoiceNumber}</Ltr></Link> }] : []),
         ]}
         lines={q.lines}
+        discount={q.discount.amount}
+        discountLabel={q.discount.kind === 'Percent' ? `${q.discount.value}%` : undefined}
         subTotal={q.subTotal}
         vatTotal={q.vatTotal}
         total={q.total}

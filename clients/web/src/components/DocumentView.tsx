@@ -5,7 +5,8 @@ import type { Schemas } from '../api/client';
 import { Ltr, Money } from './Ltr';
 import { formatDate, formatQty } from '../utils/format';
 
-type Line = Schemas['DocumentLineDto'] | Schemas['InvoiceLineDto'] | Schemas['CreditNoteLineDto'];
+/** Purchase lines have no discount. */
+type Line = (Schemas['DocumentLineDto'] | Schemas['InvoiceLineDto'] | Schemas['CreditNoteLineDto'] | Schemas['PurchaseLineDto']) & { discount?: number };
 
 interface Props {
   number: string;
@@ -13,6 +14,10 @@ interface Props {
   client: Schemas['PartyDto'];
   info?: Array<{ label: string; value: ReactNode }>;
   lines: Line[];
+  /** Document discount in money; with one, sub total is shown before it and a Discount column is added. */
+  discount?: number;
+  /** How the discount was entered, e.g. "10%". */
+  discountLabel?: string;
   subTotal: number;
   vatTotal: number;
   total: number;
@@ -21,8 +26,9 @@ interface Props {
 }
 
 /** Read-only view of a sales document, laid out like the printed version. */
-export function DocumentView({ number, date, client, info = [], lines, subTotal, vatTotal, total, terms, extraColumns = [] }: Props) {
+export function DocumentView({ number, date, client, info = [], lines, discount = 0, discountLabel, subTotal, vatTotal, total, terms, extraColumns = [] }: Props) {
   const { t } = useTranslation();
+  const hasDiscount = discount !== 0;
   return (
     <Card>
       <Row gutter={[24, 16]}>
@@ -54,6 +60,7 @@ export function DocumentView({ number, date, client, info = [], lines, subTotal,
           { title: t('doc.description'), dataIndex: 'description', render: (v: string) => <span style={{ whiteSpace: 'pre-wrap' }}>{v}</span> },
           { title: t('doc.qty'), dataIndex: 'quantity', className: 'num', render: (v: number) => <Ltr>{formatQty(v)}</Ltr> },
           { title: t('doc.unitPrice'), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
+          ...(hasDiscount ? [{ title: t('doc.discount'), dataIndex: 'discount', className: 'num', render: (v: number) => <Money value={v} /> }] : []),
           { title: t('doc.vat'), dataIndex: 'vat', className: 'num', render: (v: number, l: Line) => <span title={t(`item.${l.taxCategory}`)}><Money value={v} /></span> },
           { title: t('doc.amount'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
           ...extraColumns.map((c, i) => ({ key: `extra-${i}`, title: c.title, className: 'num', render: (_: unknown, l: Line) => c.render(l) })),
@@ -62,7 +69,17 @@ export function DocumentView({ number, date, client, info = [], lines, subTotal,
       <Row justify="end" style={{ marginTop: 16 }}>
         <Col xs={24} sm={12} md={8}>
           <Descriptions column={1} size="small" bordered items={[
-            { key: 'sub', label: t('doc.subTotal'), children: <Money value={subTotal} /> },
+            { key: 'sub', label: t('doc.subTotal'), children: <Money value={subTotal + discount} /> },
+            ...(hasDiscount
+              ? [
+                  {
+                    key: 'discount',
+                    label: discountLabel ? `${t('doc.discount')} (${discountLabel})` : t('doc.discount'),
+                    children: <span data-testid="doc-discount"><Money value={-discount} /></span>,
+                  },
+                  { key: 'net', label: t('doc.totalExclVat'), children: <Money value={subTotal} /> },
+                ]
+              : []),
             { key: 'vat', label: t('doc.vatTotal'), children: <Money value={vatTotal} /> },
             { key: 'total', label: <strong>{t('doc.total')}</strong>, children: <span data-testid="doc-total"><Money value={total} strong /></span> },
           ]} />

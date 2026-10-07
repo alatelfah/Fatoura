@@ -1,3 +1,4 @@
+using Fatoura.Domain.Documents;
 using Fatoura.Domain.Tax;
 
 namespace Fatoura.Api.Data.Entities;
@@ -21,6 +22,9 @@ public abstract class DocumentLineBase
 
     public decimal VatRate { get; set; }
 
+    /// <summary>This line's share of the document discount; <see cref="Net"/> is after it.</summary>
+    public decimal Discount { get; set; }
+
     public decimal Net { get; set; }
 
     public decimal Vat { get; set; }
@@ -39,7 +43,26 @@ public interface IDocumentTerms
     string ClosingText { get; set; }
 }
 
-public sealed class Quotation : IAudited, IDocumentTerms
+/// <summary>
+/// A document-level discount as entered (<see cref="DiscountKind"/>, <see cref="DiscountValue"/>) and its amount in
+/// money (<see cref="Discount"/>). <c>SubTotal</c> is after the discount; the gross is <c>SubTotal + Discount</c>.
+/// </summary>
+public interface IDiscounted
+{
+    DiscountKind DiscountKind { get; set; }
+
+    decimal DiscountValue { get; set; }
+
+    decimal Discount { get; set; }
+
+    decimal SubTotal { get; set; }
+
+    decimal VatTotal { get; set; }
+
+    decimal Total { get; set; }
+}
+
+public sealed class Quotation : IAudited, IDocumentTerms, IDiscounted
 {
     public int Id { get; set; }
 
@@ -67,6 +90,12 @@ public sealed class Quotation : IAudited, IDocumentTerms
 
     public string ClosingText { get; set; } = string.Empty;
 
+    public DiscountKind DiscountKind { get; set; }
+
+    public decimal DiscountValue { get; set; }
+
+    public decimal Discount { get; set; }
+
     public decimal SubTotal { get; set; }
 
     public decimal VatTotal { get; set; }
@@ -89,7 +118,7 @@ public sealed class QuotationLine : DocumentLineBase
     public int QuotationId { get; set; }
 }
 
-public sealed class Invoice : IAudited, IDocumentTerms
+public sealed class Invoice : IAudited, IDocumentTerms, IDiscounted
 {
     public int Id { get; set; }
 
@@ -124,6 +153,12 @@ public sealed class Invoice : IAudited, IDocumentTerms
     public string Notes { get; set; } = string.Empty;
 
     public string ClosingText { get; set; } = string.Empty;
+
+    public DiscountKind DiscountKind { get; set; }
+
+    public decimal DiscountValue { get; set; }
+
+    public decimal Discount { get; set; }
 
     public decimal SubTotal { get; set; }
 
@@ -194,6 +229,9 @@ public sealed class CreditNote : IAudited
     public PartySnapshot ClientSnapshot { get; set; } = new();
 
     public CompanySnapshot CompanySnapshot { get; set; } = new();
+
+    /// <summary>The credited lines' share of the invoice discount; <c>SubTotal</c> is after it.</summary>
+    public decimal Discount { get; set; }
 
     public decimal SubTotal { get; set; }
 

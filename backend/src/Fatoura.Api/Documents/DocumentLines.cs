@@ -25,9 +25,16 @@ public sealed record DocumentLineDto(
     decimal UnitPrice,
     TaxCategory TaxCategory,
     decimal VatRate,
+    decimal Discount,
     decimal Net,
     decimal Vat,
     decimal Total);
+
+/// <summary>A document-level discount: <c>Kind</c> Amount (AED) or Percent (of the sub total); omit or use None for no discount.</summary>
+public sealed record DocumentDiscountRequest(DiscountKind Kind, decimal Value);
+
+/// <summary>The discount as entered, and <c>Amount</c>, its value in money. The sub total before discount is <c>SubTotal + Amount</c>.</summary>
+public sealed record DocumentDiscountDto(DiscountKind Kind, decimal Value, decimal Amount);
 
 public sealed record PartyDto(string Name, string Address, string Phone, string Email, string Trn);
 
@@ -42,7 +49,10 @@ public sealed record TermsRequest(
     [property: MaxLength(4000)] string? Notes,
     [property: MaxLength(1000)] string? ClosingText);
 
-public sealed record DocumentTotalsDto(decimal SubTotal, decimal VatTotal, decimal Total);
+public sealed record DocumentTotalsDto(decimal SubTotal, decimal VatTotal, decimal Total)
+{
+    public decimal Discount { get; init; }
+}
 
 public static class DocumentLines
 {
@@ -55,7 +65,39 @@ public static class DocumentLines
     public static TermsDto Terms(this IDocumentTerms t) => new(t.PaymentTerms, t.CompletionOfWork, t.Notes, t.ClosingText);
 
     public static DocumentLineDto ToDto(this DocumentLineBase l) =>
-        new(l.Id, l.LineNo, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Net, l.Vat, l.Total);
+        new(l.Id, l.LineNo, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Discount, l.Net, l.Vat, l.Total);
+
+    public static DocumentDiscountDto DiscountDto(this IDiscounted d) => new(d.DiscountKind, d.DiscountValue, d.Discount);
+
+    public static DocumentDiscount ToDiscount(this DocumentDiscountRequest? r) =>
+        r is null ? DocumentDiscount.None : new DocumentDiscount(r.Kind, r.Value);
+
+    public static DocumentDiscountRequest? DiscountRequest(this IDiscounted d) =>
+        d.DiscountKind == DiscountKind.None ? null : new DocumentDiscountRequest(d.DiscountKind, d.DiscountValue);
+
+    /// <summary>
+    /// Validates a document discount against already-valid <paramref name="lines"/>: a percentage of at most 100, or an
+    /// amount no larger than the sub total, each with at most 2 decimals.
+    /// </summary>
+    public static void ValidateDiscount(DocumentDiscountRequest? discount, IReadOnlyList<DocumentLineRequest> lines, FieldValidator v)
+    {
+        if (discount is null || discount.Kind == DiscountKind.None || !v.IsValid)
+        {
+            return;
+        }
+
+        if (!Enum.IsDefined(discount.Kind))
+        {
+            v.Add("discount.kind", "Unknown discount kind.");
+            return;
+        }
+
+        var gross = lines.Sum(l => DocumentCalculator.Gross(new LineInput(l.Quantity, l.UnitPrice, l.TaxCategory)));
+        v.Require(discount.Value >= 0, "discount.value", "A discount cannot be negative.")
+         .Require(DocumentCalculator.HasAtMostDecimals(discount.Value, DocumentCalculator.MoneyDecimals), "discount.value", "A discount can have at most 2 decimals.")
+         .Require(discount.Kind != DiscountKind.Percent || discount.Value <= 100, "discount.value", "A discount percentage cannot exceed 100.")
+         .Require(discount.Kind != DiscountKind.Amount || discount.Value <= gross, "discount.value", $"A discount cannot exceed the sub total ({gross:0.00}).");
+    }
 
     public static void ApplyTerms(this IDocumentTerms target, TermsRequest? request, CompanySettings defaults)
     {
@@ -104,11 +146,25 @@ public static class DocumentLines
         }
     }
 
-    /// <summary>Builds line entities with amounts from <see cref="DocumentCalculator"/> and returns the document totals.</summary>
-    public static DocumentTotalsDto Build<TLine>(IReadOnlyList<DocumentLineRequest> requests, decimal vatRate, List<TLine> target)
+    /// <summary>Builds lines with the document discount spread over them, and sets the document's discount and totals.</summary>
+    public static void Build<TLine>(
+        this IDiscounted document, IReadOnlyList<DocumentLineRequest> requests, DocumentDiscountRequest? discount, decimal vatRate, List<TLine> target)
         where TLine : DocumentLineBase, new()
     {
-        var totals = DocumentCalculator.Calculate(requests.Select(r => new LineInput(r.Quantity, r.UnitPrice, r.TaxCategory)), vatRate);
+        var d = discount.ToDiscount();
+        var totals = Build(requests, vatRate, target, d);
+        document.DiscountKind = d.Kind;
+        document.DiscountValue = d.Kind == DiscountKind.None ? 0 : d.Value;
+        document.Discount = totals.Discount;
+        (document.SubTotal, document.VatTotal, document.Total) = totals;
+    }
+
+    /// <summary>Builds line entities with amounts from <see cref="DocumentCalculator"/> and returns the document totals.</summary>
+    public static DocumentTotalsDto Build<TLine>(
+        IReadOnlyList<DocumentLineRequest> requests, decimal vatRate, List<TLine> target, DocumentDiscount? discount = null)
+        where TLine : DocumentLineBase, new()
+    {
+        var totals = DocumentCalculator.Calculate(requests.Select(r => new LineInput(r.Quantity, r.UnitPrice, r.TaxCategory)), vatRate, discount);
         target.Clear();
         for (var i = 0; i < requests.Count; i++)
         {
@@ -123,13 +179,14 @@ public static class DocumentLines
                 UnitPrice = r.UnitPrice,
                 TaxCategory = r.TaxCategory,
                 VatRate = a.VatRate,
+                Discount = a.Discount,
                 Net = a.Net,
                 Vat = a.Vat,
                 Total = a.Total,
             });
         }
 
-        return new DocumentTotalsDto(totals.SubTotal, totals.VatTotal, totals.Total);
+        return new DocumentTotalsDto(totals.SubTotal, totals.VatTotal, totals.Total) { Discount = totals.Discount };
     }
 
     public static DocumentLineRequest ToRequest(this DocumentLineBase l) => new(l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory);

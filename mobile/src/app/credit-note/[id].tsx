@@ -19,6 +19,7 @@ export default function CreditNoteScreen() {
           date={c.date}
           client={c.client}
           lines={c.lines}
+          discount={c.discount}
           subTotal={c.subTotal}
           vatTotal={c.vatTotal}
           total={c.total}

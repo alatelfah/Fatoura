@@ -24,6 +24,7 @@ public sealed record InvoiceLineDto(
     decimal UnitPrice,
     Fatoura.Domain.Tax.TaxCategory TaxCategory,
     decimal VatRate,
+    decimal Discount,
     decimal Net,
     decimal Vat,
     decimal Total,
@@ -42,6 +43,7 @@ public sealed record InvoiceDto(
     string VoidReason,
     DateTimeOffset? VoidedAt,
     TermsDto Terms,
+    DocumentDiscountDto Discount,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -73,9 +75,11 @@ public sealed record IssueInvoiceRequest(
     DateOnly? Date,
     List<DocumentLineRequest> Lines,
     TermsRequest? Terms,
-    PaymentRequest? Payment);
+    PaymentRequest? Payment,
+    DocumentDiscountRequest? Discount = null);
 
-public sealed record UpdateInvoiceRequest(int ClientId, DateOnly Date, List<DocumentLineRequest> Lines, TermsRequest? Terms);
+public sealed record UpdateInvoiceRequest(
+    int ClientId, DateOnly Date, List<DocumentLineRequest> Lines, TermsRequest? Terms, DocumentDiscountRequest? Discount = null);
 
 public sealed record VoidInvoiceRequest([property: Required, MaxLength(500)] string Reason);
 
@@ -128,11 +132,11 @@ public static class InvoiceEndpoints
         var creditedTotal = i.CreditNotes.Sum(c => c.Total);
         return new InvoiceDto(
             i.Id, i.Number, i.Date, i.ClientId, i.ClientSnapshot.ToDto(), i.CompanySnapshot.ToDto(), i.QuotationId, i.QuotationNumber,
-            i.Status, i.VoidReason, i.VoidedAt, i.Terms(), i.SubTotal, i.VatTotal, i.Total, paid, creditedTotal,
+            i.Status, i.VoidReason, i.VoidedAt, i.Terms(), i.DiscountDto(), i.SubTotal, i.VatTotal, i.Total, paid, creditedTotal,
             i.Status == InvoiceStatus.Void ? 0 : i.Total - creditedTotal - paid,
             i.CreatedById, i.CreatedBy?.DisplayName ?? string.Empty, i.CreatedAt,
             i.Lines.OrderBy(l => l.LineNo).Select(l => new InvoiceLineDto(
-                l.Id, l.LineNo, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Net, l.Vat, l.Total,
+                l.Id, l.LineNo, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Discount, l.Net, l.Vat, l.Total,
                 credited.GetValueOrDefault(l.Id))).ToList(),
             i.Payments.OrderBy(p => p.Date).ThenBy(p => p.Id).Select(p => new PaymentDto(p.Id, p.Date, p.Amount, p.Method, p.Reference, p.CreatedAt)).ToList(),
             i.CreditNotes.OrderBy(c => c.Id).Select(c => new CreditNoteSummaryDto(c.Id, c.Number, c.Date, c.Total, c.Reason)).ToList());
@@ -217,12 +221,13 @@ public static class InvoiceEndpoints
     {
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct);
+        DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
         v.ThrowIfInvalid();
         var date = ResolveDate(r.Date, user, clock);
 
         var (id, warnings) = await db.InTransactionAsync(async () =>
         {
-            var (invoice, w) = await invoices.IssueAsync(new IssueInvoiceCommand(r.ClientId, date, r.Lines, r.Terms, Payment: r.Payment), ct);
+            var (invoice, w) = await invoices.IssueAsync(new IssueInvoiceCommand(r.ClientId, date, r.Lines, r.Terms, r.Discount, Payment: r.Payment), ct);
             return (invoice.Id, w);
         }, ct);
 
@@ -234,12 +239,13 @@ public static class InvoiceEndpoints
     {
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct, allowInactiveItems: true);
+        DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
         v.ThrowIfInvalid();
         var date = ResolveDate(r.Date, user, clock);
 
         var warnings = await db.InTransactionAsync(async () =>
         {
-            var (_, w) = await invoices.EditAsync(id, r.ClientId, date, r.Lines, r.Terms, ct);
+            var (_, w) = await invoices.EditAsync(id, r.ClientId, date, r.Lines, r.Discount, r.Terms, ct);
             return w;
         }, ct);
 

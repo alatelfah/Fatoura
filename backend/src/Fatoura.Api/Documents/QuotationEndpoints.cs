@@ -22,6 +22,7 @@ public sealed record QuotationDto(
     int? ConvertedInvoiceId,
     string? ConvertedInvoiceNumber,
     TermsDto Terms,
+    DocumentDiscountDto Discount,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -48,7 +49,8 @@ public sealed record QuotationRequest(
     DateOnly? Date,
     DateOnly? ValidUntil,
     List<DocumentLineRequest> Lines,
-    TermsRequest? Terms);
+    TermsRequest? Terms,
+    DocumentDiscountRequest? Discount = null);
 
 public sealed record QuotationStatusRequest(QuotationStatus Status);
 
@@ -78,7 +80,7 @@ public static class QuotationEndpoints
             : null;
         return new QuotationDto(
             q.Id, q.Number, q.Date, q.ValidUntil, IsExpired(q, clock.Today), q.ClientId, q.ClientSnapshot.ToDto(), q.Status,
-            q.ConvertedInvoiceId, invoiceNumber, q.Terms(), q.SubTotal, q.VatTotal, q.Total, q.CreatedById,
+            q.ConvertedInvoiceId, invoiceNumber, q.Terms(), q.DiscountDto(), q.SubTotal, q.VatTotal, q.Total, q.CreatedById,
             q.CreatedBy?.DisplayName ?? string.Empty, q.CreatedAt, q.Lines.OrderBy(l => l.LineNo).Select(l => l.ToDto()).ToList());
     }
 
@@ -156,6 +158,7 @@ public static class QuotationEndpoints
     {
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct);
+        DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
         v.ThrowIfInvalid();
 
         var id = await db.InTransactionAsync(async () =>
@@ -179,7 +182,7 @@ public static class QuotationEndpoints
             };
             ValidateDates(q.Date, q.ValidUntil);
             q.ApplyTerms(r.Terms, settings);
-            (q.SubTotal, q.VatTotal, q.Total) = DocumentLines.Build(r.Lines, settings.VatRate, q.Lines);
+            q.Build(r.Lines, r.Discount, settings.VatRate, q.Lines);
             db.Quotations.Add(q);
             await db.SaveChangesAsync(ct);
             return q.Id;
@@ -200,6 +203,7 @@ public static class QuotationEndpoints
     {
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct, allowInactiveItems: true);
+        DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
         v.ThrowIfInvalid();
 
         await db.InTransactionAsync(async () =>
@@ -217,7 +221,7 @@ public static class QuotationEndpoints
             q.ApplyTerms(r.Terms, settings);
             db.QuotationLines.RemoveRange(q.Lines);
             var lines = new List<QuotationLine>();
-            (q.SubTotal, q.VatTotal, q.Total) = DocumentLines.Build(r.Lines, settings.VatRate, lines);
+            q.Build(r.Lines, r.Discount, settings.VatRate, lines);
             q.Lines = lines;
             q.UpdatedAt = time.GetUtcNow();
             await db.SaveChangesAsync(ct);
@@ -274,7 +278,7 @@ public static class QuotationEndpoints
 
             var terms = new TermsRequest(q.PaymentTerms, q.CompletionOfWork, q.Notes, q.ClosingText);
             var (invoice, w) = await invoices.IssueAsync(
-                new IssueInvoiceCommand(q.ClientId, clock.Today, lines, terms, q.Id, q.Number, r?.Payment), ct);
+                new IssueInvoiceCommand(q.ClientId, clock.Today, lines, terms, q.DiscountRequest(), q.Id, q.Number, r?.Payment), ct);
             q.Status = QuotationStatus.Converted;
             q.ConvertedInvoiceId = invoice.Id;
             q.UpdatedAt = time.GetUtcNow();

@@ -67,6 +67,36 @@ test('quotation with the reference lines converts to a tax invoice and credit no
   await expect(page.getByTestId('doc-total')).toHaveText('4,305.00');
 });
 
+test('invoice with a 10% discount taxes the discounted value', async ({ page, request }) => {
+  const token = await apiToken(request);
+  const clientName = `Discount Client ${run}`;
+  await api(request, token, 'POST', '/api/clients', { name: clientName });
+
+  await login(page);
+  await page.goto('/invoices/new');
+  await pick(page, 'clients-select', clientName);
+  await page.getByTestId('line-0-description').fill('Dishwasher');
+  await page.getByTestId('line-0-qty').fill('20');
+  await page.getByTestId('line-0-price').fill('2050');
+  await page.getByTestId('add-line').click();
+  await page.getByTestId('line-1-description').fill('Installation');
+  await page.getByTestId('line-1-qty').fill('20');
+  await page.getByTestId('line-1-price').fill('250');
+  await pick(page, 'discount-kind', 'Percent (%)');
+  await page.getByTestId('discount-value').fill('10');
+  await page.getByTestId('discount-value').blur();
+
+  // 46,000.00 − 4,600.00 = 41,400.00, + 2,070.00 VAT.
+  await expect(page.getByTestId('discount-amount')).toHaveText('-4,600.00');
+  await expect(page.getByTestId('grand-total')).toHaveText('43,470.00');
+  await page.getByTestId('document-submit').click();
+
+  await page.waitForURL(/\/invoices\/\d+$/);
+  await expect(page.getByTestId('doc-discount')).toHaveText('-4,600.00');
+  await expect(page.getByTestId('doc-total')).toHaveText('43,470.00');
+  await expect(page.getByTestId('invoice-balance')).toHaveText('0.00');
+});
+
 test('cashier issues a paid invoice from the dashboard but cannot void it', async ({ page, request }) => {
   const token = await apiToken(request);
   const clientName = `Walk-in ${run}`;

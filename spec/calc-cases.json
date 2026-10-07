@@ -111,6 +111,114 @@
         "vatTotal": "0.00",
         "total": "0.00"
       }
+    },
+    {
+      "name": "Discount: 10% off the reference invoice, VAT on the discounted value",
+      "lines": [
+        { "qty": "20", "unitPrice": "2050.00", "tax": "Standard" },
+        { "qty": "20", "unitPrice": "250.00", "tax": "Standard" }
+      ],
+      "discount": { "kind": "Percent", "value": "10" },
+      "expected": {
+        "lines": [
+          { "discount": "4100.00", "net": "36900.00", "vat": "1845.00", "total": "38745.00" },
+          { "discount": "500.00", "net": "4500.00", "vat": "225.00", "total": "4725.00" }
+        ],
+        "grossSubTotal": "46000.00",
+        "discount": "4600.00",
+        "subTotal": "41400.00",
+        "vatTotal": "2070.00",
+        "total": "43470.00"
+      }
+    },
+    {
+      "name": "Discount: fixed amount split equally gives the leftover fils to the first line",
+      "lines": [
+        { "qty": "1", "unitPrice": "10.00", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "10.00", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "10.00", "tax": "Standard" }
+      ],
+      "discount": { "kind": "Amount", "value": "1.00" },
+      "expected": {
+        "lines": [
+          { "discount": "0.34", "net": "9.66", "vat": "0.48", "total": "10.14" },
+          { "discount": "0.33", "net": "9.67", "vat": "0.48", "total": "10.15" },
+          { "discount": "0.33", "net": "9.67", "vat": "0.48", "total": "10.15" }
+        ],
+        "grossSubTotal": "30.00",
+        "discount": "1.00",
+        "subTotal": "29.00",
+        "vatTotal": "1.44",
+        "total": "30.44"
+      }
+    },
+    {
+      "name": "Discount: leftover fils go to the largest remainders",
+      "lines": [
+        { "qty": "1", "unitPrice": "7.00", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "5.00", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "1.00", "tax": "Standard" }
+      ],
+      "discount": { "kind": "Amount", "value": "1.00" },
+      "expected": {
+        "lines": [
+          { "discount": "0.54", "net": "6.46", "vat": "0.32", "total": "6.78" },
+          { "discount": "0.38", "net": "4.62", "vat": "0.23", "total": "4.85" },
+          { "discount": "0.08", "net": "0.92", "vat": "0.05", "total": "0.97" }
+        ],
+        "grossSubTotal": "13.00",
+        "discount": "1.00",
+        "subTotal": "12.00",
+        "vatTotal": "0.60",
+        "total": "12.60"
+      }
+    },
+    {
+      "name": "Discount: spread over mixed tax categories",
+      "lines": [
+        { "qty": "1", "unitPrice": "100.00", "tax": "Standard" },
+        { "qty": "2", "unitPrice": "50.00", "tax": "ZeroRated" },
+        { "qty": "1", "unitPrice": "30.00", "tax": "Exempt" }
+      ],
+      "discount": { "kind": "Percent", "value": "12.5" },
+      "expected": {
+        "lines": [
+          { "discount": "12.50", "net": "87.50", "vat": "4.38", "total": "91.88" },
+          { "discount": "12.50", "net": "87.50", "vat": "0.00", "total": "87.50" },
+          { "discount": "3.75", "net": "26.25", "vat": "0.00", "total": "26.25" }
+        ],
+        "grossSubTotal": "230.00",
+        "discount": "28.75",
+        "subTotal": "201.25",
+        "vatTotal": "4.38",
+        "total": "205.63"
+      }
+    },
+    {
+      "name": "Discount: percentage amount rounds half away from zero",
+      "lines": [{ "qty": "1", "unitPrice": "19.99", "tax": "Standard" }],
+      "discount": { "kind": "Percent", "value": "7.5" },
+      "expected": {
+        "lines": [{ "discount": "1.50", "net": "18.49", "vat": "0.92", "total": "19.41" }],
+        "grossSubTotal": "19.99",
+        "discount": "1.50",
+        "subTotal": "18.49",
+        "vatTotal": "0.92",
+        "total": "19.41"
+      }
+    },
+    {
+      "name": "Discount: 100% leaves nothing to tax",
+      "lines": [{ "qty": "2", "unitPrice": "15.00", "tax": "Standard" }],
+      "discount": { "kind": "Percent", "value": "100" },
+      "expected": {
+        "lines": [{ "discount": "30.00", "net": "0.00", "vat": "0.00", "total": "0.00" }],
+        "grossSubTotal": "30.00",
+        "discount": "30.00",
+        "subTotal": "0.00",
+        "vatTotal": "0.00",
+        "total": "0.00"
+      }
     }
   ]
 }

@@ -50,7 +50,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
 
         var doc = new PrintDocument(
             "Tax Invoice", "Invoice No:", i.Number, i.Date, Company(i.CompanySnapshot, settings), Party(i.ClientSnapshot), extra,
-            Lines(i.Lines), i.SubTotal, VatLabel(settings.VatRate), i.VatTotal, i.Total, Terms(i), i.Status == InvoiceStatus.Void);
+            Lines(i.Lines), i.Discount, i.SubTotal, VatLabel(settings.VatRate), i.VatTotal, i.Total, Terms(i), i.Status == InvoiceStatus.Void);
         return (Render(doc), FileName("Invoice", i.Number));
     }
 
@@ -62,7 +62,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
         var doc = new PrintDocument(
             "Quotation", "Quotation No:", q.Number, q.Date, Company(CompanySnapshot.From(settings), settings), Party(q.ClientSnapshot),
             [new PrintInfo("Valid Until:", SalesDocumentPdf.Date(q.ValidUntil))],
-            Lines(q.Lines), q.SubTotal, VatLabel(settings.VatRate), q.VatTotal, q.Total, Terms(q), IsVoid: false);
+            Lines(q.Lines), q.Discount, q.SubTotal, VatLabel(settings.VatRate), q.VatTotal, q.Total, Terms(q), IsVoid: false);
         return (Render(doc), FileName("Quotation", q.Number));
     }
 
@@ -81,7 +81,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
         var terms = new PrintTerms(string.Empty, string.Empty, [], $"Reason: {c.Reason}");
         var doc = new PrintDocument(
             "Tax Credit Note", "Credit Note No:", c.Number, c.Date, Company(c.CompanySnapshot, settings), Party(c.ClientSnapshot), extra,
-            Lines(c.Lines), c.SubTotal, VatLabel(settings.VatRate), c.VatTotal, c.Total, terms, IsVoid: false);
+            Lines(c.Lines), c.Discount, c.SubTotal, VatLabel(settings.VatRate), c.VatTotal, c.Total, terms, IsVoid: false);
         return (Render(doc), FileName("CreditNote", c.Number));
     }
 
@@ -93,7 +93,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
     private static PrintParty Party(PartySnapshot p) => new(p.Name, p.Address, p.Phone, p.Trn);
 
     private static List<PrintLine> Lines(IEnumerable<DocumentLineBase> lines) =>
-        lines.OrderBy(l => l.LineNo).Select(l => new PrintLine(l.LineNo, l.Description, l.Quantity, l.UnitPrice, l.Vat, l.Total)).ToList();
+        lines.OrderBy(l => l.LineNo).Select(l => new PrintLine(l.LineNo, l.Description, l.Quantity, l.UnitPrice, l.Discount, l.Vat, l.Total)).ToList();
 
     private static PrintTerms Terms(IDocumentTerms t) => new(
         t.PaymentTerms,

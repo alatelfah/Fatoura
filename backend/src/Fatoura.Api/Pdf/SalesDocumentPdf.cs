@@ -174,23 +174,39 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
         });
     }
 
+    private bool HasDiscount => doc.Discount != 0;
+
     private void ComposeLines(IContainer container)
     {
+        // With a discount, a Discount column takes its width from the description so each row still adds up.
+        var columns = new List<(string Title, float Width)>
+        {
+            ("Sl.No", 9.7f),
+            ("Description of Service", HasDiscount ? 37.6f : 47.6f),
+            ("Qty", 4.2f),
+            ("Unit Price (AED)", 12.5f),
+        };
+        if (HasDiscount)
+        {
+            columns.Add(("Discount", 10f));
+        }
+
+        columns.Add(("Vat", 12.0f));
+        columns.Add(("Amount (AED)", 14.0f));
+
         container.Border(Outer).Table(t =>
         {
             t.ColumnsDefinition(c =>
             {
-                c.RelativeColumn(9.7f);
-                c.RelativeColumn(47.6f);
-                c.RelativeColumn(4.2f);
-                c.RelativeColumn(12.5f);
-                c.RelativeColumn(12.0f);
-                c.RelativeColumn(14.0f);
+                foreach (var (_, width) in columns)
+                {
+                    c.RelativeColumn(width);
+                }
             });
 
             t.Header(h =>
             {
-                foreach (var title in new[] { "Sl.No", "Description of Service", "Qty", "Unit Price (AED)", "Vat", "Amount (AED)" })
+                foreach (var (title, _) in columns)
                 {
                     h.Cell().Background(HeaderFill).BorderBottom(Outer).BorderRight(Inner).PaddingVertical(2).PaddingHorizontal(3)
                         .AlignCenter().Text(title).Bold();
@@ -203,12 +219,17 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
                 Cell(t).AlignCenter().Text(line.Description).Bold();
                 Cell(t).AlignCenter().Text(Quantity(line.Quantity));
                 Cell(t).AlignRight().Text(Money(line.UnitPrice));
+                if (HasDiscount)
+                {
+                    Cell(t).AlignRight().Text(Money(line.Discount));
+                }
+
                 Cell(t).AlignRight().Text(Money(line.Vat));
                 Cell(t).AlignRight().Text(Money(line.Amount));
             }
 
             // Trailing empty row, as on the reference invoice.
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < columns.Count; i++)
             {
                 t.Cell().BorderRight(Inner).MinHeight(22);
             }
@@ -220,6 +241,15 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
 
     private void ComposeTotals(IContainer container)
     {
+        var rows = new List<(string Label, decimal Value)> { ("Sub Total", doc.SubTotal + doc.Discount) };
+        if (HasDiscount)
+        {
+            rows.Add(("Discount", -doc.Discount));
+            rows.Add(("Total excl. VAT", doc.SubTotal));
+        }
+
+        rows.Add((doc.VatLabel, doc.VatTotal));
+
         container.Row(row =>
         {
             // Column proportions measured from the reference: stamp centred under the description, totals at the right.
@@ -238,14 +268,20 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
             });
             row.RelativeItem(20.2f).PaddingTop(8).Column(c =>
             {
-                c.Item().AlignRight().Text("Sub Total").Bold();
-                c.Item().AlignRight().Text(doc.VatLabel).Bold();
+                foreach (var (label, _) in rows)
+                {
+                    c.Item().AlignRight().Text(label).Bold();
+                }
+
                 c.Item().AlignRight().Text("Total Amount").Bold();
             });
             row.RelativeItem(26.6f).PaddingTop(8).PaddingRight(4).Column(c =>
             {
-                c.Item().AlignRight().Text(Money(doc.SubTotal));
-                c.Item().AlignRight().Text(Money(doc.VatTotal));
+                foreach (var (_, value) in rows)
+                {
+                    c.Item().AlignRight().Text(Money(value));
+                }
+
                 c.Item().AlignRight().Text(Money(doc.Total)).Bold();
             });
         });

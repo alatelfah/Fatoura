@@ -4,11 +4,20 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
-import { previewDocument } from '@fatoura/shared';
 import { $api, fetchClient, type Schemas } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { ContactSelect } from '../../components/ClientSelect';
-import { DocumentLinesEditor, emptyLine, fromLines, toLineRequests, type LineFormValue } from '../../components/DocumentLinesEditor';
+import {
+  DocumentLinesEditor,
+  emptyLine,
+  fromDiscount,
+  fromLines,
+  previewLines,
+  toDiscountRequest,
+  toLineRequests,
+  type DiscountFormValue,
+  type LineFormValue,
+} from '../../components/DocumentLinesEditor';
 import { PageHeader } from '../../components/PageHeader';
 import { applyProblem } from '../../components/problems';
 import { isoDate } from '../../utils/format';
@@ -20,6 +29,7 @@ interface FormValues {
   date?: Dayjs;
   validUntil?: Dayjs;
   lines: LineFormValue[];
+  discount?: DiscountFormValue;
   paymentTerms?: string;
   completionOfWork?: string;
   notes?: string;
@@ -50,8 +60,9 @@ export function SalesDocumentForm({ mode, existing }: Props) {
   const settings = $api.useQuery('get', '/api/settings');
   const vatRate = settings.data?.vatRate ?? 0.05;
   const lines = Form.useWatch('lines', form);
+  const discount = Form.useWatch('discount', form);
   const paymentMode = Form.useWatch('paymentMode', form);
-  const total = previewDocument((lines ?? []).map((l) => ({ qty: l?.quantity ?? null, unitPrice: l?.unitPrice ?? null, tax: l?.taxCategory ?? 'Standard' })), vatRate).total;
+  const total = previewLines(lines, vatRate, discount).total;
 
   useEffect(() => {
     if (!settings.data) return;
@@ -61,11 +72,13 @@ export function SalesDocumentForm({ mode, existing }: Props) {
         date: dayjs(existing.date),
         validUntil: 'validUntil' in existing ? dayjs(existing.validUntil) : undefined,
         lines: fromLines(existing.lines),
+        discount: fromDiscount(existing.discount),
         ...existing.terms,
       });
     } else {
       form.setFieldsValue({
         lines: [{ ...emptyLine }],
+        discount: { kind: 'None', value: null },
         paymentTerms: settings.data.paymentTerms,
         completionOfWork: settings.data.completionOfWork,
         notes: settings.data.notes,
@@ -83,8 +96,9 @@ export function SalesDocumentForm({ mode, existing }: Props) {
     try {
       const terms = { paymentTerms: values.paymentTerms ?? '', completionOfWork: values.completionOfWork ?? '', notes: values.notes ?? '', closingText: values.closingText ?? '' };
       const linesBody = toLineRequests(values.lines);
+      const discountBody = toDiscountRequest(values.discount);
       if (mode === 'quotation') {
-        const body = { clientId: values.clientId, date: isoDate(values.date) ?? null, validUntil: isoDate(values.validUntil) ?? null, lines: linesBody, terms };
+        const body = { clientId: values.clientId, date: isoDate(values.date) ?? null, validUntil: isoDate(values.validUntil) ?? null, lines: linesBody, terms, discount: discountBody };
         const { data, error } = existing
           ? await fetchClient.PUT('/api/quotations/{id}', { params: { path: { id: existing.id } }, body })
           : await fetchClient.POST('/api/quotations', { body });
@@ -107,11 +121,11 @@ export function SalesDocumentForm({ mode, existing }: Props) {
       let issued: Schemas['InvoiceResult'] | undefined;
       let failure: unknown;
       if (existing) {
-        const r = await fetchClient.PUT('/api/invoices/{id}', { params: { path: { id: existing.id } }, body: { clientId: values.clientId, date: isoDate(values.date)!, lines: linesBody, terms } });
+        const r = await fetchClient.PUT('/api/invoices/{id}', { params: { path: { id: existing.id } }, body: { clientId: values.clientId, date: isoDate(values.date)!, lines: linesBody, terms, discount: discountBody } });
         issued = r.data;
         failure = r.error;
       } else {
-        const r = await fetchClient.POST('/api/invoices', { body: { clientId: values.clientId, date: isAdmin ? (isoDate(values.date) ?? null) : null, lines: linesBody, terms, payment: payment && payment.amount > 0 ? payment : null } });
+        const r = await fetchClient.POST('/api/invoices', { body: { clientId: values.clientId, date: isAdmin ? (isoDate(values.date) ?? null) : null, lines: linesBody, terms, discount: discountBody, payment: payment && payment.amount > 0 ? payment : null } });
         issued = r.data;
         failure = r.error;
       }
@@ -157,7 +171,7 @@ export function SalesDocumentForm({ mode, existing }: Props) {
           </Row>
         </Card>
         <Card title={t('doc.lines')} style={{ marginBottom: 16 }}>
-          <DocumentLinesEditor form={form} vatRate={vatRate} />
+          <DocumentLinesEditor form={form} vatRate={vatRate} discount />
         </Card>
         <Collapse
           style={{ marginBottom: 16, background: '#fff' }}

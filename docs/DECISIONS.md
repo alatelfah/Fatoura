@@ -29,6 +29,20 @@ The product owner made the decisions marked **(owner)**. The others are the impl
   - Unit prices have at most 2 decimals (fils).
   - Quantities have at most 3 decimals.
 
+## Discounts
+- **(owner)** A quotation or tax invoice can carry **one discount for the whole document**, entered as an amount (AED) or a percentage of the sub total. There are no per-line discounts.
+- **VAT after the discount:** the FTA charges VAT on the discounted value, so the discount is spread over the lines in proportion to their amounts before VAT is worked out:
+  - `Line Gross = round2(Qty × Unit Price)`; `Sub Total (before discount) = Σ Line Gross`
+  - `Discount = amount`, or `round2(Sub Total × % / 100)`; it can't exceed the sub total
+  - Each line's share is worked out in whole fils, and leftover fils go to the lines with the largest remainders (the earlier line on a tie), so the shares add up exactly to the discount
+  - `Line Net = Line Gross − share`, then `Line VAT = round2(Line Net × rate)` as before
+- **Stored totals:** `SubTotal` is the amount **after** the discount, so reports, P&L and the VAT return need no change. The document also stores the discount as entered and its amount; each line stores its share.
+- **Printed:** when there is a discount, the line table gains a **Discount** column. The totals show Sub Total, Discount, Total excl. VAT, VAT and Total Amount, so the invoice states the discount as the FTA requires.
+- **Credit notes** take back the matching share of the line's discount, in proportion to the quantity credited. The credit that finishes a line takes exactly what is left, so a fully credited line returns its whole discount.
+- **Conversion:** converting a quotation carries its discount to the invoice.
+- **Purchases** have no discount field: enter supplier invoices at their net prices.
+- Fixtures for the discount math are in `spec/calc-cases.json`, shared by the C# and TypeScript tests.
+
 ## TRN validation
 - **Rule:** a TRN must be exactly 15 digits **starting with "10"**. Spaces and dashes are ignored.
 - **Why not "100":** the BRD says TRNs "usually start with 100". But both TRNs in the reference invoice (`105386581000003` for the company, `105325228200003` for the client) start with `105`, so requiring `100` would reject real, valid TRNs.
@@ -86,8 +100,8 @@ The product owner made the decisions marked **(owner)**. The others are the impl
 - **Same PDF everywhere:** the web and mobile apps both download the PDF from the server, so every copy is identical.
 
 ## Out of scope for v1
-- Discounts (FTA rules would require them to be shown on the invoice), multi-currency, and FTA e-invoicing (PINT-AE through an accredited provider).
-- Settings and user management are web-only. The mobile app covers daily operations, the dashboard and read-only reports.
+- Multi-currency, and FTA e-invoicing (PINT-AE through an accredited provider).
+- **(owner)** Settings and user management stay web-only. The mobile app covers daily operations, the dashboard and read-only reports.
 
 ## Implementation details
 - **Who can change what:**

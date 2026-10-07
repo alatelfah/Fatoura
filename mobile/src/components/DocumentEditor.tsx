@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, View } from 'react-native';
 import { Button, Card, Divider, IconButton, List, Modal, Portal, Searchbar, SegmentedButtons, Text, TextInput } from 'react-native-paper';
-import { previewDocument, type TaxCategory } from '@fatoura/shared';
+import { previewDocument, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../lib/api';
 import { parseNumber } from '../lib/format';
 import { Money } from './ui';
@@ -27,6 +27,28 @@ export function toRequests(lines: EditableLine[]): Schemas['DocumentLineRequest'
     unitPrice: parseNumber(l.price) ?? 0,
     taxCategory: l.tax,
   }));
+}
+
+export interface EditableDiscount {
+  kind: DiscountKind;
+  value: string;
+}
+
+export const noDiscount: EditableDiscount = { kind: 'None', value: '' };
+
+/** The API's discount request, or null for no discount. */
+export function toDiscountRequest(d: EditableDiscount): Schemas['DocumentDiscountRequest'] | null {
+  const value = parseNumber(d.value);
+  return d.kind === 'None' || !value ? null : { kind: d.kind, value };
+}
+
+/** Live totals for editable lines, with the document discount spread over them (invalid input is skipped). */
+export function preview(lines: EditableLine[], vatRate: number, discount?: EditableDiscount) {
+  return previewDocument(
+    lines.map((l) => ({ qty: parseNumber(l.qty), unitPrice: parseNumber(l.price), tax: l.tax })),
+    vatRate,
+    discount ? toDiscountRequest(discount) : null,
+  );
 }
 
 /** Searchable picker in a modal (clients or items). */
@@ -73,12 +95,19 @@ export function ClientField({ client, onChange }: { client: { id: number; name: 
 const TAXES: TaxCategory[] = ['Standard', 'ZeroRated', 'Exempt'];
 
 /** Line editor with live per-line VAT and totals using the same calculator as the server. */
-export function LinesEditor({ lines, onChange, vatRate }: { lines: EditableLine[]; onChange: (lines: EditableLine[]) => void; vatRate: number }) {
+export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChange }: {
+  lines: EditableLine[];
+  onChange: (lines: EditableLine[]) => void;
+  vatRate: number;
+  /** Sales documents take a document-level discount. */
+  discount?: EditableDiscount;
+  onDiscountChange?: (discount: EditableDiscount) => void;
+}) {
   const { t } = useTranslation();
   const [pickFor, setPickFor] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const items = $api.useQuery('get', '/api/items', { params: { query: { search: search || undefined, pageSize: 100 } } }, { enabled: pickFor !== null });
-  const totals = previewDocument(lines.map((l) => ({ qty: parseNumber(l.qty), unitPrice: parseNumber(l.price), tax: l.tax })), vatRate);
+  const totals = preview(lines, vatRate, discount);
   const update = (key: number, patch: Partial<EditableLine>) => onChange(lines.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
   return (
@@ -107,7 +136,38 @@ export function LinesEditor({ lines, onChange, vatRate }: { lines: EditableLine[
       <Button mode="outlined" icon="plus" onPress={() => onChange([...lines, newLine()])} testID="add-line">{t('doc.addLine')}</Button>
       <Card>
         <Card.Content style={{ gap: 4 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.subTotal')}</Text><Money value={totals.subTotal.toFixed(2)} /></View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.subTotal')}</Text><Money value={totals.grossSubTotal.toFixed(2)} /></View>
+          {discount && onDiscountChange && (
+            <View style={{ gap: 8, marginVertical: 4 }}>
+              <SegmentedButtons
+                density="small"
+                value={discount.kind}
+                onValueChange={(kind) => onDiscountChange({ kind: kind as DiscountKind, value: kind === 'None' ? '' : discount.value })}
+                buttons={[
+                  { value: 'None', label: t('doc.discountNone') },
+                  { value: 'Amount', label: t('doc.discountAmount') },
+                  { value: 'Percent', label: t('doc.discountPercent') },
+                ]}
+              />
+              {discount.kind !== 'None' && (
+                <TextInput
+                  label={t('doc.discount')}
+                  value={discount.value}
+                  onChangeText={(value) => onDiscountChange({ ...discount, value })}
+                  keyboardType="decimal-pad"
+                  mode="outlined"
+                  dense
+                  testID="discount-value"
+                />
+              )}
+            </View>
+          )}
+          {totals.discount.gt(0) && (
+            <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.discount')}</Text><Money value={totals.discount.times(-1).toFixed(2)} testID="discount-amount" /></View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.totalExclVat')}</Text><Money value={totals.subTotal.toFixed(2)} /></View>
+            </>
+          )}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.vatTotal')} {Number((vatRate * 100).toFixed(2))}%</Text><Money value={totals.vatTotal.toFixed(2)} /></View>
           <Divider />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ fontWeight: '700' }}>{t('doc.total')}</Text><Money value={totals.total.toFixed(2)} bold testID="grand-total" /></View>

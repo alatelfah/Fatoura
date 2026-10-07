@@ -346,6 +346,77 @@ public class SalesDocumentsTests(ApiFactory api) : IClassFixture<ApiFactory>, IA
     }
 
     [Fact]
+    public async Task Discount_is_taxed_after_carries_into_the_invoice_and_credits_back_exactly()
+    {
+        var client = await Scenario.ClientAsync(_admin, "Discount Client");
+        var dishwasher = await Scenario.DishwasherAsync(_admin, openingStock: 40);
+        var install = await Scenario.InstallationAsync(_admin);
+
+        var quote = await (await _admin.PostAsJsonAsync("/api/quotations", new
+        {
+            clientId = client.Id,
+            lines = Scenario.ReferenceLines(dishwasher, install),
+            discount = new { kind = "Percent", value = 10m },
+        })).ReadAsync<QuotationDto>(HttpStatusCode.Created);
+        quote.Discount.ShouldBe(new DocumentDiscountDto(Fatoura.Domain.Documents.DiscountKind.Percent, 10m, 4600m));
+        quote.Lines.Select(l => (l.Discount, l.Net, l.Vat, l.Total)).ShouldBe([(4100m, 36900m, 1845m, 38745m), (500m, 4500m, 225m, 4725m)]);
+        (quote.SubTotal, quote.VatTotal, quote.Total).ShouldBe((41400m, 2070m, 43470m));
+
+        var invoice = (await (await _admin.PostAsync($"/api/quotations/{quote.Id}/convert", null))
+            .ReadAsync<InvoiceResult>(HttpStatusCode.Created)).Invoice;
+        invoice.Discount.ShouldBe(quote.Discount);
+        (invoice.SubTotal, invoice.VatTotal, invoice.Total).ShouldBe((41400m, 2070m, 43470m));
+
+        // 7 of 20 take a proportional share of the line's 4,100.00 discount; the last 13 take exactly what is left.
+        async Task<CreditNoteDto> Credit(decimal qty) => await (await _admin.PostAsJsonAsync("/api/credit-notes", new
+        {
+            invoiceId = invoice.Id, reason = "Return", returnToStock = true, lines = new[] { new { invoiceLineId = invoice.Lines[0].Id, quantity = qty } },
+        })).ReadAsync<CreditNoteDto>(HttpStatusCode.Created);
+        var first = await Credit(7);
+        first.Lines.Single().ShouldSatisfyAllConditions(
+            l => l.Discount.ShouldBe(1435m), l => l.Net.ShouldBe(12915m), l => l.Vat.ShouldBe(645.75m), l => l.Total.ShouldBe(13560.75m));
+        first.Discount.ShouldBe(1435m);
+        var rest = await Credit(13);
+        rest.Lines.Single().ShouldSatisfyAllConditions(l => l.Discount.ShouldBe(2665m), l => l.Net.ShouldBe(23985m), l => l.Vat.ShouldBe(1199.25m));
+
+        var reloaded = await (await _admin.GetAsync($"/api/invoices/{invoice.Id}")).ReadAsync<InvoiceDto>();
+        reloaded.Balance.ShouldBe(4725m); // only the installation line is left
+
+        foreach (var url in new[] { $"/api/quotations/{quote.Id}/pdf", $"/api/invoices/{invoice.Id}/pdf", $"/api/credit-notes/{first.Id}/pdf" })
+        {
+            (await _admin.GetAsync(url)).StatusCode.ShouldBe(HttpStatusCode.OK, url);
+        }
+    }
+
+    [Fact]
+    public async Task Discount_can_be_changed_by_an_admin_edit_and_cannot_exceed_the_sub_total()
+    {
+        var client = await Scenario.ClientAsync(_admin, "Discount Edit");
+        var lines = new[] { new { description = "Work", quantity = 1m, unitPrice = 100m, taxCategory = "Standard" } };
+
+        var tooMuch = await _admin.PostAsJsonAsync("/api/invoices", new { clientId = client.Id, lines, discount = new { kind = "Amount", value = 100.01m } });
+        (await tooMuch.ReadJsonAsync(HttpStatusCode.BadRequest)).GetProperty("errors").TryGetProperty("discount.value", out _).ShouldBeTrue();
+        var overPercent = await _admin.PostAsJsonAsync("/api/quotations", new { clientId = client.Id, lines, discount = new { kind = "Percent", value = 100.5m } });
+        (await overPercent.ReadJsonAsync(HttpStatusCode.BadRequest)).GetProperty("errors").TryGetProperty("discount.value", out _).ShouldBeTrue();
+
+        var invoice = (await (await _admin.PostAsJsonAsync("/api/invoices", new { clientId = client.Id, lines }))
+            .ReadAsync<InvoiceResult>(HttpStatusCode.Created)).Invoice;
+        invoice.Discount.Kind.ShouldBe(Fatoura.Domain.Documents.DiscountKind.None);
+        invoice.Total.ShouldBe(105m);
+
+        var edited = (await (await _admin.PutAsJsonAsync($"/api/invoices/{invoice.Id}", new
+        {
+            clientId = client.Id, date = invoice.Date, lines, discount = new { kind = "Amount", value = 10m },
+        })).ReadAsync<InvoiceResult>()).Invoice;
+        edited.Number.ShouldBe(invoice.Number);
+        (edited.Discount.Amount, edited.SubTotal, edited.VatTotal, edited.Total).ShouldBe((10m, 90m, 4.5m, 94.5m));
+
+        var cleared = (await (await _admin.PutAsJsonAsync($"/api/invoices/{invoice.Id}", new { clientId = client.Id, date = invoice.Date, lines }))
+            .ReadAsync<InvoiceResult>()).Invoice;
+        (cleared.Discount.Kind, cleared.Discount.Amount, cleared.Total).ShouldBe((Fatoura.Domain.Documents.DiscountKind.None, 0m, 105m));
+    }
+
+    [Fact]
     public async Task Invalid_lines_are_reported_per_field()
     {
         var client = await Scenario.ClientAsync(_admin, "Validation");

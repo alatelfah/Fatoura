@@ -2940,6 +2940,7 @@
           "returnToStock",
           "client",
           "company",
+          "discount",
           "subTotal",
           "vatTotal",
           "total",
@@ -2984,6 +2985,10 @@
           "company": {
             "$ref": "#/components/schemas/CompanyDto"
           },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
           "subTotal": {
             "type": "number",
             "format": "double"
@@ -3026,6 +3031,7 @@
           "unitPrice",
           "taxCategory",
           "vatRate",
+          "discount",
           "net",
           "vat",
           "total"
@@ -3066,6 +3072,10 @@
             "$ref": "#/components/schemas/TaxCategory"
           },
           "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
             "type": "number",
             "format": "double"
           },
@@ -3209,6 +3219,52 @@
           }
         }
       },
+      "DiscountKind": {
+        "enum": [
+          "None",
+          "Amount",
+          "Percent"
+        ]
+      },
+      "DocumentDiscountDto": {
+        "required": [
+          "kind",
+          "value",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/DiscountKind"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "The discount as entered, and `Amount`, its value in money. The sub total before discount is `SubTotal + Amount`."
+      },
+      "DocumentDiscountRequest": {
+        "required": [
+          "kind",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/DiscountKind"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "A document-level discount: `Kind` Amount (AED) or Percent (of the sub total); omit or use None for no discount."
+      },
       "DocumentLineDto": {
         "required": [
           "id",
@@ -3219,6 +3275,7 @@
           "unitPrice",
           "taxCategory",
           "vatRate",
+          "discount",
           "net",
           "vat",
           "total"
@@ -3255,6 +3312,10 @@
             "$ref": "#/components/schemas/TaxCategory"
           },
           "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
             "type": "number",
             "format": "double"
           },
@@ -3370,6 +3431,7 @@
           "voidReason",
           "voidedAt",
           "terms",
+          "discount",
           "subTotal",
           "vatTotal",
           "total",
@@ -3431,6 +3493,9 @@
           },
           "terms": {
             "$ref": "#/components/schemas/TermsDto"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/DocumentDiscountDto"
           },
           "subTotal": {
             "type": "number",
@@ -3497,6 +3562,7 @@
           "unitPrice",
           "taxCategory",
           "vatRate",
+          "discount",
           "net",
           "vat",
           "total",
@@ -3534,6 +3600,10 @@
             "$ref": "#/components/schemas/TaxCategory"
           },
           "vatRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
             "type": "number",
             "format": "double"
           },
@@ -3681,6 +3751,16 @@
               },
               {
                 "$ref": "#/components/schemas/PaymentRequest"
+              }
+            ]
+          },
+          "discount": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
           }
@@ -4694,6 +4774,7 @@
           "convertedInvoiceId",
           "convertedInvoiceNumber",
           "terms",
+          "discount",
           "subTotal",
           "vatTotal",
           "total",
@@ -4747,6 +4828,9 @@
           },
           "terms": {
             "$ref": "#/components/schemas/TermsDto"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/DocumentDiscountDto"
           },
           "subTotal": {
             "type": "number",
@@ -4820,6 +4904,16 @@
               },
               {
                 "$ref": "#/components/schemas/TermsRequest"
+              }
+            ]
+          },
+          "discount": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
           }
@@ -5483,6 +5577,16 @@
               },
               {
                 "$ref": "#/components/schemas/TermsRequest"
+              }
+            ]
+          },
+          "discount": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
           }

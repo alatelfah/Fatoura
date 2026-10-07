@@ -139,6 +139,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
             e.Property(q => q.Status).HasConversion<string>().HaveMax(20);
             e.OwnsOne(q => q.ClientSnapshot, ConfigureParty);
             ConfigureTerms(e);
+            ConfigureDiscount(e);
             e.HasOne(q => q.Client).WithMany().HasForeignKey(q => q.ClientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(q => q.CreatedBy).WithMany().HasForeignKey(q => q.CreatedById).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(q => q.Lines).WithOne().HasForeignKey(l => l.QuotationId).OnDelete(DeleteBehavior.Cascade);
@@ -152,6 +153,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
             e.HasIndex(i => i.Date);
             e.HasIndex(i => new { i.CreatedById, i.Date });
             e.Property(i => i.QuotationNumber).HaveMax(40);
+            ConfigureDiscount(e);
             e.Property(i => i.Status).HasConversion<string>().HaveMax(20);
             e.Property(i => i.VoidReason).HaveMax(500);
             e.OwnsOne(i => i.ClientSnapshot, ConfigureParty);
@@ -240,6 +242,12 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
         e.Property<string>(nameof(IDocumentTerms.CompletionOfWork)).HaveMax(1000);
         e.Property<string>(nameof(IDocumentTerms.Notes)).HaveMax(4000);
         e.Property<string>(nameof(IDocumentTerms.ClosingText)).HaveMax(1000);
+    }
+
+    private static void ConfigureDiscount<T>(EntityTypeBuilder<T> e)
+        where T : class, IDiscounted
+    {
+        e.Property(d => d.DiscountKind).HasConversion<string>().HaveMax(20);
     }
 
     private static void ConfigureLine<T>(EntityTypeBuilder<T> e)

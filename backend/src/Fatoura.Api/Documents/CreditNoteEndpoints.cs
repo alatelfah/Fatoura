@@ -30,6 +30,7 @@ public sealed record CreditNoteLineDto(
     decimal UnitPrice,
     Fatoura.Domain.Tax.TaxCategory TaxCategory,
     decimal VatRate,
+    decimal Discount,
     decimal Net,
     decimal Vat,
     decimal Total);
@@ -45,6 +46,7 @@ public sealed record CreditNoteDto(
     bool ReturnToStock,
     PartyDto Client,
     CompanyDto Company,
+    decimal Discount,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -74,10 +76,10 @@ public static class CreditNoteEndpoints
             .SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Credit note");
         return new CreditNoteDto(
             c.Id, c.Number, c.Date, c.InvoiceId, c.Invoice!.Number, c.Invoice.Date, c.Reason, c.ReturnToStock,
-            c.ClientSnapshot.ToDto(), c.CompanySnapshot.ToDto(), c.SubTotal, c.VatTotal, c.Total, c.CreatedById,
+            c.ClientSnapshot.ToDto(), c.CompanySnapshot.ToDto(), c.Discount, c.SubTotal, c.VatTotal, c.Total, c.CreatedById,
             c.CreatedBy?.DisplayName ?? string.Empty, c.CreatedAt,
             c.Lines.OrderBy(l => l.LineNo).Select(l => new CreditNoteLineDto(
-                l.Id, l.LineNo, l.InvoiceLineId, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Net, l.Vat, l.Total)).ToList());
+                l.Id, l.LineNo, l.InvoiceLineId, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Discount, l.Net, l.Vat, l.Total)).ToList());
     }
 
     private static async Task<Ok<PagedResult<CreditNoteSummaryListDto>>> List(
@@ -149,8 +151,8 @@ public static class CreditNoteEndpoints
 
             var lineIds = invoice.Lines.Select(l => l.Id).ToList();
             var alreadyCredited = await db.CreditNoteLines.Where(l => lineIds.Contains(l.InvoiceLineId))
-                .GroupBy(l => l.InvoiceLineId).Select(g => new { g.Key, Qty = g.Sum(l => l.Quantity) })
-                .ToDictionaryAsync(x => x.Key, x => x.Qty, ct);
+                .GroupBy(l => l.InvoiceLineId).Select(g => new { g.Key, Qty = g.Sum(l => l.Quantity), Discount = g.Sum(l => l.Discount) })
+                .ToDictionaryAsync(x => x.Key, x => (x.Qty, x.Discount), ct);
 
             var requests = new List<DocumentLineRequest>();
             var invoiceLines = new List<InvoiceLine>();
@@ -165,7 +167,7 @@ public static class CreditNoteEndpoints
                     continue;
                 }
 
-                var remaining = line.Quantity - alreadyCredited.GetValueOrDefault(line.Id) - requestedPerLine.GetValueOrDefault(line.Id);
+                var remaining = line.Quantity - alreadyCredited.GetValueOrDefault(line.Id).Qty - requestedPerLine.GetValueOrDefault(line.Id);
                 lv.Require(req.Quantity > 0, $"lines[{i}].quantity", "Quantity must be greater than zero.")
                   .Require(Domain.Documents.DocumentCalculator.HasAtMostDecimals(req.Quantity, 3), $"lines[{i}].quantity", "Quantity can have at most 3 decimals.")
                   .Require(req.Quantity <= remaining, $"lines[{i}].quantity", $"Only {remaining:0.###} can still be credited on this line.");
@@ -190,12 +192,21 @@ public static class CreditNoteEndpoints
                 CreatedAt = now,
             };
 
-            // Credit lines reuse the invoice line's price, tax category and VAT rate (not today's settings).
+            // Credit lines reuse the invoice line's price, tax category and VAT rate (not today's settings), and take back
+            // the matching share of its discount: proportional to the quantity, with the last credit taking what is left
+            // so a fully credited line returns exactly its discount.
+            var creditedSoFar = alreadyCredited.ToDictionary(x => x.Key, x => x.Value);
             for (var i = 0; i < requests.Count; i++)
             {
                 var src = invoiceLines[i];
-                var amounts = Domain.Documents.DocumentCalculator.CalculateLine(
-                    new Domain.Documents.LineInput(requests[i].Quantity, src.UnitPrice, src.TaxCategory), src.VatRate);
+                var input = new Domain.Documents.LineInput(requests[i].Quantity, src.UnitPrice, src.TaxCategory);
+                var (qtyBefore, discountBefore) = creditedSoFar.GetValueOrDefault(src.Id);
+                var discount = qtyBefore + requests[i].Quantity == src.Quantity
+                    ? src.Discount - discountBefore
+                    : Domain.Documents.DocumentCalculator.RoundMoney(src.Discount * requests[i].Quantity / src.Quantity);
+                discount = Math.Clamp(discount, 0, Domain.Documents.DocumentCalculator.Gross(input));
+                creditedSoFar[src.Id] = (qtyBefore + requests[i].Quantity, discountBefore + discount);
+                var amounts = Domain.Documents.DocumentCalculator.CalculateLine(input, src.VatRate, discount);
                 note.Lines.Add(new CreditNoteLine
                 {
                     LineNo = i + 1,
@@ -206,12 +217,14 @@ public static class CreditNoteEndpoints
                     UnitPrice = src.UnitPrice,
                     TaxCategory = src.TaxCategory,
                     VatRate = src.VatRate,
+                    Discount = amounts.Discount,
                     Net = amounts.Net,
                     Vat = amounts.Vat,
                     Total = amounts.Total,
                 });
             }
 
+            note.Discount = note.Lines.Sum(l => l.Discount);
             note.SubTotal = note.Lines.Sum(l => l.Net);
             note.VatTotal = note.Lines.Sum(l => l.Vat);
             note.Total = note.SubTotal + note.VatTotal;

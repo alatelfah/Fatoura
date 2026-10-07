@@ -55,6 +55,8 @@ const ar: Translations = {
     completionOfWork: 'مدة الإنجاز', notes: 'ملاحظات (ملاحظة في كل سطر)', closingText: 'نص الختام',
     createdBy: 'أنشأها', paid: 'المدفوع', credited: 'المرتجع', balance: 'المتبقي', noLines: 'أضف بندًا واحدًا على الأقل',
     stockWarning: 'أصبح مخزون "{{name}}" {{qty}}.', settingsIncomplete: 'أكمل بيانات الشركة في الإعدادات أولًا.',
+    discount: 'الخصم', discountNone: 'بدون خصم', discountAmount: 'مبلغ (درهم)', discountPercent: 'نسبة (%)',
+    totalExclVat: 'الإجمالي قبل الضريبة', discountShare: 'بعد خصم {{amount}}',
   },
   quotation: {
     title: 'عروض الأسعار', new: 'عرض سعر جديد', edit: 'تعديل عرض السعر', convert: 'تحويل إلى فاتورة',

@@ -13,6 +13,7 @@ public sealed record IssueInvoiceCommand(
     DateOnly Date,
     IReadOnlyList<DocumentLineRequest> Lines,
     TermsRequest? Terms,
+    DocumentDiscountRequest? Discount = null,
     int? QuotationId = null,
     string QuotationNumber = "",
     PaymentRequest? Payment = null);
@@ -50,8 +51,7 @@ public sealed class InvoiceService(
             UpdatedAt = now,
         };
         invoice.ApplyTerms(cmd.Terms, settings);
-        var totals = DocumentLines.Build(cmd.Lines, settings.VatRate, invoice.Lines);
-        (invoice.SubTotal, invoice.VatTotal, invoice.Total) = (totals.SubTotal, totals.VatTotal, totals.Total);
+        invoice.Build(cmd.Lines, cmd.Discount, settings.VatRate, invoice.Lines);
         await SetUnitCostsAsync(invoice.Lines, ct);
 
         if (cmd.Payment is { } p)
@@ -71,7 +71,13 @@ public sealed class InvoiceService(
 
     /// <summary>Admin edit: replaces client, date, lines and terms; the number never changes. Stock is re-applied.</summary>
     public async Task<(Invoice Invoice, IReadOnlyList<StockWarning> Warnings)> EditAsync(
-        int id, int clientId, DateOnly date, IReadOnlyList<DocumentLineRequest> lines, TermsRequest? terms, CancellationToken ct)
+        int id,
+        int clientId,
+        DateOnly date,
+        IReadOnlyList<DocumentLineRequest> lines,
+        DocumentDiscountRequest? discount,
+        TermsRequest? terms,
+        CancellationToken ct)
     {
         var invoice = await LockAsync(id, ct);
         if (invoice.Status == InvoiceStatus.Void)
@@ -90,13 +96,13 @@ public sealed class InvoiceService(
 
         var oldLines = invoice.Lines.ToList();
         var newLines = new List<InvoiceLine>();
-        var totals = DocumentLines.Build(lines, settings.VatRate, newLines);
+        invoice.Build(lines, discount, settings.VatRate, newLines);
         await SetUnitCostsAsync(newLines, ct);
 
         var paid = invoice.Payments.Sum(p => p.Amount);
-        if (paid > totals.Total)
+        if (paid > invoice.Total)
         {
-            throw new ConflictException($"Payments ({paid:0.00}) exceed the new total ({totals.Total:0.00}). Remove a payment first.");
+            throw new ConflictException($"Payments ({paid:0.00}) exceed the new total ({invoice.Total:0.00}). Remove a payment first.");
         }
 
         db.InvoiceLines.RemoveRange(oldLines);
@@ -105,7 +111,6 @@ public sealed class InvoiceService(
         invoice.ClientSnapshot = PartySnapshot.From(client);
         invoice.Date = date;
         invoice.ApplyTerms(terms, settings);
-        (invoice.SubTotal, invoice.VatTotal, invoice.Total) = (totals.SubTotal, totals.VatTotal, totals.Total);
         invoice.UpdatedAt = time.GetUtcNow();
         await db.SaveChangesAsync(ct);
 

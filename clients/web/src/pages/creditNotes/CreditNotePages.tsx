@@ -61,6 +61,7 @@ export function CreditNoteViewPage() {
           { label: t('doc.createdBy'), value: c.createdByName },
         ]}
         lines={c.lines}
+        discount={c.discount}
         subTotal={c.subTotal}
         vatTotal={c.vatTotal}
         total={c.total}

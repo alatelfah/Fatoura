@@ -49,6 +49,7 @@ export default function InvoiceScreen() {
           date={inv.date}
           client={inv.client}
           lines={inv.lines}
+          discount={inv.discount.amount}
           subTotal={inv.subTotal}
           vatTotal={inv.vatTotal}
           total={inv.total}

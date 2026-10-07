@@ -2,7 +2,7 @@ import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Flex, Form, Input, InputNumber, Select, Typography, type FormInstance } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { previewDocument, TAX_CATEGORIES, type TaxCategory } from '@fatoura/shared';
+import { previewDocument, TAX_CATEGORIES, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../api/client';
 import { Money } from './Ltr';
 
@@ -15,22 +15,30 @@ export interface LineFormValue {
   taxCategory?: TaxCategory;
 }
 
+export interface DiscountFormValue {
+  kind?: DiscountKind;
+  value?: number | null;
+}
+
 interface Props {
   form: FormInstance;
   vatRate: number;
   /** Purchases price items at cost and allow expense lines. */
   purchase?: boolean;
+  /** Sales documents take a document-level discount, edited in the form's `discount` field. */
+  discount?: boolean;
 }
 
 export const emptyLine: LineFormValue = { itemId: null, description: '', quantity: 1, unitPrice: undefined, taxCategory: 'Standard' };
 
 /** Editable document lines with live per-line VAT and totals (same math as the server, via @fatoura/shared). */
-export function DocumentLinesEditor({ form, vatRate, purchase }: Props) {
+export function DocumentLinesEditor({ form, vatRate, purchase, discount }: Props) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const items = $api.useQuery('get', '/api/items', { params: { query: { search: search || undefined, pageSize: 100 } } });
   const lines = (Form.useWatch('lines', form) as LineFormValue[] | undefined) ?? [];
-  const totals = previewDocument(lines.map((l) => ({ qty: l?.quantity ?? null, unitPrice: l?.unitPrice ?? null, tax: l?.taxCategory ?? 'Standard' })), vatRate);
+  const discountValue = Form.useWatch('discount', form) as DiscountFormValue | undefined;
+  const totals = previewLines(lines, vatRate, discount ? discountValue : undefined);
   const byId = new Map((items.data?.items ?? []).map((i) => [i.id, i] as const));
 
   const pickItem = (index: number, item: Schemas['ItemDto'] | undefined) => {
@@ -108,6 +116,11 @@ export function DocumentLinesEditor({ form, vatRate, purchase }: Props) {
                 </span>
                 <span className="num" data-testid={`line-${index}-amount`}>
                   <Money value={totals.lines[index]?.total.toFixed(2)} />
+                  {totals.lines[index]?.discount.gt(0) && (
+                    <Typography.Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
+                      {t('doc.discountShare', { amount: totals.lines[index]!.discount.toFixed(2) })}
+                    </Typography.Text>
+                  )}
                 </span>
                 <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(field.name)} aria-label={t('common.delete')} />
               </div>
@@ -121,7 +134,53 @@ export function DocumentLinesEditor({ form, vatRate, purchase }: Props) {
       </Form.List>
 
       <Flex vertical align="end" gap={4} className="totals" data-testid="totals">
-        <Totals label={t('doc.subTotal')} value={totals.subTotal.toFixed(2)} />
+        <Totals label={t('doc.subTotal')} value={totals.grossSubTotal.toFixed(2)} />
+        {discount && (
+          <Flex justify="end" align="start" gap={4} style={{ minWidth: 260 }}>
+            <Form.Item name={['discount', 'kind']} noStyle>
+              <Select
+                style={{ width: 150 }}
+                aria-label={t('doc.discount')}
+                data-testid="discount-kind"
+                options={[
+                  { value: 'None', label: t('doc.discountNone') },
+                  { value: 'Amount', label: t('doc.discountAmount') },
+                  { value: 'Percent', label: t('doc.discountPercent') },
+                ]}
+                onChange={(kind: DiscountKind) => kind === 'None' && form.setFieldValue(['discount', 'value'], null)}
+              />
+            </Form.Item>
+            <Form.Item
+              name={['discount', 'value']}
+              style={{ marginBottom: 0 }}
+              dependencies={[['discount', 'kind']]}
+              rules={[
+                {
+                  validator: async (_, v?: number | null) => {
+                    if (discountValue?.kind === 'Percent' && v != null && v > 100) throw new Error(`${t('doc.discount')} ≤ 100%`);
+                    if (discountValue?.kind === 'Amount' && v != null && totals.grossSubTotal.lt(v)) throw new Error(`${t('doc.discount')} ≤ ${totals.grossSubTotal.toFixed(2)}`);
+                  },
+                },
+              ]}
+            >
+              <InputNumber
+                min={0}
+                max={discountValue?.kind === 'Percent' ? 100 : undefined}
+                precision={2}
+                style={{ width: 110 }}
+                aria-label={t('doc.discount')}
+                disabled={!discountValue?.kind || discountValue.kind === 'None'}
+                data-testid="discount-value"
+              />
+            </Form.Item>
+          </Flex>
+        )}
+        {totals.discount.gt(0) && (
+          <>
+            <Totals label={t('doc.discount')} value={totals.discount.times(-1).toFixed(2)} testId="discount-amount" />
+            <Totals label={t('doc.totalExclVat')} value={totals.subTotal.toFixed(2)} />
+          </>
+        )}
         <Totals label={`${t('doc.vatTotal')} ${Number((vatRate * 100).toFixed(2))}%`} value={totals.vatTotal.toFixed(2)} />
         <Totals label={t('doc.total')} value={totals.total.toFixed(2)} strong testId="grand-total" />
       </Flex>
@@ -138,6 +197,25 @@ function Totals({ label, value, strong, testId }: { label: string; value: string
       </span>
     </Flex>
   );
+}
+
+/** Live totals for form lines, with the document discount spread over them (invalid input is skipped). */
+export function previewLines(lines: LineFormValue[] | undefined, vatRate: number, discount?: DiscountFormValue) {
+  return previewDocument(
+    (lines ?? []).map((l) => ({ qty: l?.quantity ?? null, unitPrice: l?.unitPrice ?? null, tax: l?.taxCategory ?? 'Standard' })),
+    vatRate,
+    toDiscountRequest(discount),
+  );
+}
+
+/** The API's discount request, or null for no discount. */
+export function toDiscountRequest(d: DiscountFormValue | undefined): Schemas['DocumentDiscountRequest'] | null {
+  if (!d?.kind || d.kind === 'None' || !d.value) return null;
+  return { kind: d.kind, value: Number(d.value) };
+}
+
+export function fromDiscount(d: Schemas['DocumentDiscountDto'] | undefined): DiscountFormValue {
+  return !d || d.kind === 'None' ? { kind: 'None', value: null } : { kind: d.kind, value: d.value };
 }
 
 /** Converts form lines to the API's line request shape. */

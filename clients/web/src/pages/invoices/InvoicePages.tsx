@@ -124,6 +124,8 @@ export function InvoiceViewPage() {
           { label: t('doc.balance'), value: <span data-testid="invoice-balance"><Money value={inv.balance} strong /></span> },
         ]}
         lines={inv.lines}
+        discount={inv.discount.amount}
+        discountLabel={inv.discount.kind === 'Percent' ? `${inv.discount.value}%` : undefined}
         subTotal={inv.subTotal}
         vatTotal={inv.vatTotal}
         total={inv.total}

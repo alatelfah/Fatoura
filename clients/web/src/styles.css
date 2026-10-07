@@ -18,6 +18,11 @@ body {
   white-space: nowrap;
 }
 
+/* antd aligns header cells to the start; numeric headers follow their numbers. */
+.ant-table-wrapper .ant-table-thead > tr > th.num {
+  text-align: end;
+}
+
 .brand {
   display: flex;
   align-items: center;

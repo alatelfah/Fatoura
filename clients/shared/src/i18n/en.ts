@@ -58,6 +58,7 @@ const en = {
     currency: 'Currency', exchangeRate: 'Exchange rate (AED per 1 {{currency}})', unitPriceIn: 'Unit price ({{currency}})',
     amountIn: 'Amount ({{currency}})', totalIn: 'Total Amount ({{currency}})', vatAed: 'VAT (AED)', totalAed: 'Total Amount (AED)',
     rateInfo: '1 {{currency}} = {{rate}} AED',
+    slNo: 'Sl.No',
   },
   quotation: {
     title: 'Quotations', new: 'New quotation', edit: 'Edit quotation', convert: 'Convert to invoice',
@@ -91,6 +92,11 @@ const en = {
     boxLabel: 'Description', outputVat: 'Output VAT', inputVat: 'Input VAT (recoverable)', payable: 'Net VAT payable',
     refundable: 'Net VAT refundable', emirate: 'Emirate', Invoice: 'Invoice', CreditNote: 'Credit note',
     inAed: 'All amounts are in AED. Documents in other currencies count at their own exchange rate.',
+    vatBox: {
+      '1': 'Standard rated supplies in {{emirate}}', '4': 'Zero rated supplies', '5': 'Exempt supplies',
+      '8': 'Totals (supplies and output tax)', '9': 'Standard rated expenses', '11': 'Totals (expenses and recoverable tax)',
+      '12': 'Total value of due tax for the period', '13': 'Total value of recoverable tax for the period', '14': 'Payable tax for the period',
+    },
   },
   settings: {
     title: 'Settings', company: 'Company', companyName: 'Company name', emirate: 'Emirate', website: 'Website', vatRate: 'VAT rate (%)',

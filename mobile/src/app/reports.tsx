@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 import { Card, DataTable, SegmentedButtons, Text } from 'react-native-paper';
+import { isTaxOnlyVatBox, vatBoxLabel } from '@fatoura/shared';
 import { Guard } from '../components/Guard';
 import { Loading, Money, Row, Screen } from '../components/ui';
 import { $api } from '../lib/api';
@@ -63,10 +65,17 @@ export default function ReportsScreen() {
           <Card>
             <Card.Title title={t('reports.vat')} />
             <DataTable>
+              <DataTable.Header>
+                <DataTable.Title style={{ flex: 2 }}>{t('reports.boxLabel')}</DataTable.Title>
+                <DataTable.Title numeric>{t('reports.net')}</DataTable.Title>
+                <DataTable.Title numeric>{t('reports.vatAmount')}</DataTable.Title>
+              </DataTable.Header>
               {vat.data.boxes.filter((b) => b.amount !== 0 || b.vat !== 0).map((b) => (
-                <DataTable.Row key={b.box}>
-                  <DataTable.Cell style={{ flex: 0.4 }}>{b.box}</DataTable.Cell>
-                  <DataTable.Cell numeric><Money value={b.amount} /></DataTable.Cell>
+                <DataTable.Row key={b.box} style={{ paddingVertical: 6 }}>
+                  <View style={{ flex: 2, justifyContent: 'center', paddingEnd: 8 }}>
+                    <Text variant="bodySmall">{b.box} · {vatBoxLabel(t, b.box, b.label)}</Text>
+                  </View>
+                  <DataTable.Cell numeric>{isTaxOnlyVatBox(b.box) ? '' : <Money value={b.amount} />}</DataTable.Cell>
                   <DataTable.Cell numeric><Money value={b.vat} /></DataTable.Cell>
                 </DataTable.Row>
               ))}

@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react';
 import { formatMoney } from '../utils/format';
 
+/** Isolates text whose direction comes from its own content (names, addresses, free text) inside either layout. */
+export function Auto({ children }: { children: ReactNode }) {
+  return <bdi>{children}</bdi>;
+}
+
 /** Keeps numbers, TRNs and document numbers left-to-right inside Arabic text. */
 export function Ltr({ children }: { children: ReactNode }) {
   return <bdi dir="ltr">{children}</bdi>;

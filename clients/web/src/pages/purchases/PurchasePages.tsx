@@ -10,7 +10,7 @@ import { ContactSelect } from '../../components/ClientSelect';
 import { CurrencyFields, fromCurrency, toCurrencyRequest, type CurrencyFormValue } from '../../components/CurrencyFields';
 import { DocumentLinesEditor, emptyLine, type LineFormValue } from '../../components/DocumentLinesEditor';
 import { DocumentView } from '../../components/DocumentView';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { applyProblem } from '../../components/problems';
 import { formatDate, isoDate } from '../../utils/format';
@@ -43,9 +43,9 @@ export function PurchasesPage() {
           { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('purchase.supplierInvoiceNo'), dataIndex: 'supplierInvoiceNo', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-          { title: t('doc.supplier'), dataIndex: 'supplierName' },
-          { title: t('reports.net'), dataIndex: 'subTotal', className: 'num', render: (v: number) => <Money value={v} /> },
-          { title: t('reports.vatAmount'), dataIndex: 'vatTotal', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('doc.supplier'), dataIndex: 'supplierName', render: (v: string) => <Auto>{v}</Auto> },
+          { title: t('doc.subTotal'), dataIndex: 'subTotal', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
+          { title: t('doc.vat'), dataIndex: 'vatTotal', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
         ]}
       />
@@ -182,7 +182,7 @@ export function PurchaseViewPage() {
   return (
     <>
       <PageHeader
-        title={<>{t('nav.purchases')} <Ltr>{p.number}</Ltr></>}
+        title={<>{t('settings.Purchase')} <Ltr>{p.number}</Ltr></>}
         extra={
           <>
             {p.hasAttachment && (
@@ -204,6 +204,7 @@ export function PurchaseViewPage() {
         number={p.number}
         date={p.date}
         client={p.supplier}
+        partyLabel={t('doc.supplier')}
         info={[{ label: t('purchase.supplierInvoiceNo'), value: <Ltr>{p.supplierInvoiceNo || '—'}</Ltr> }]}
         lines={p.lines.map((l) => ({ ...l, description: l.expenseCategory ? `${l.description} (${l.expenseCategory})` : l.description }))}
         subTotal={p.subTotal}

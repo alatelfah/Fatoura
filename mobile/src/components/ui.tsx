@@ -50,13 +50,14 @@ export function ErrorText({ error }: { error: unknown }) {
   );
 }
 
-export function Kpi({ title, value, testID }: { title: string; value: number; testID?: string }) {
+/** A headline figure: money by default, or a plain count. */
+export function Kpi({ title, value, testID, count }: { title: string; value: number; testID?: string; count?: boolean }) {
   return (
     <Card style={styles.kpi}>
       <Card.Content>
         <Text variant="labelMedium" style={{ opacity: 0.7 }}>{title}</Text>
         <Text variant="titleLarge" style={{ writingDirection: 'ltr', fontWeight: '600' }} testID={testID}>
-          {formatMoney(value)}
+          {count ? String(value) : formatMoney(value)}
         </Text>
       </Card.Content>
     </Card>

@@ -3,10 +3,11 @@ import { Alert, Button, Card, Col, DatePicker, Descriptions, Flex, Row, Select, 
 import dayjs, { type Dayjs } from 'dayjs';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isTaxOnlyVatBox, vatBoxLabel } from '@fatoura/shared';
 import { $api, downloadFile } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { ContactSelect } from '../../components/ClientSelect';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { formatDate, formatMoney, isoDate } from '../../utils/format';
 
@@ -82,8 +83,8 @@ function SalesReport() {
               { title: t('reports.type'), dataIndex: 'kind', render: (k: string) => <Tag color={k === 'Invoice' ? 'blue' : 'orange'}>{t(`reports.${k}`)}</Tag> },
               { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
               { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-              { title: t('doc.client'), dataIndex: 'clientName' },
-              { title: t('reports.cashier'), dataIndex: 'cashierName' },
+              { title: t('doc.client'), dataIndex: 'clientName', render: (v: string) => <Auto>{v}</Auto> },
+              { title: t('reports.cashier'), dataIndex: 'cashierName', render: (v: string) => <Auto>{v}</Auto> },
               { title: t('doc.currency'), dataIndex: 'currency', width: 90 },
               { title: t('reports.net'), dataIndex: 'net', className: 'num', render: (v: number) => <Money value={v} /> },
               { title: t('reports.vatAmount'), dataIndex: 'vat', className: 'num', render: (v: number) => <Money value={v} /> },
@@ -93,7 +94,7 @@ function SalesReport() {
           {isAdmin && data.byCashier.length > 0 && (
             <Card title={t('reports.byCashier')} size="small" style={{ marginTop: 16 }}>
               <Table size="small" rowKey="cashierId" pagination={false} dataSource={data.byCashier} columns={[
-                { title: t('reports.cashier'), dataIndex: 'cashierName' },
+                { title: t('reports.cashier'), dataIndex: 'cashierName', render: (v: string) => <Auto>{v}</Auto> },
                 { title: t('reports.count'), dataIndex: 'invoiceCount', className: 'num' },
                 { title: t('reports.net'), dataIndex: 'net', className: 'num', render: (v: number) => <Money value={v} /> },
                 { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
@@ -129,7 +130,7 @@ function PurchasesReport() {
             { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
             { title: t('purchase.supplierInvoiceNo'), dataIndex: 'supplierInvoiceNo', render: (v: string) => <Ltr>{v}</Ltr> },
             { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-            { title: t('doc.supplier'), dataIndex: 'supplierName' },
+            { title: t('doc.supplier'), dataIndex: 'supplierName', render: (v: string) => <Auto>{v}</Auto> },
             { title: t('doc.currency'), dataIndex: 'currency', width: 90 },
             { title: t('reports.net'), dataIndex: 'net', className: 'num', render: (v: number) => <Money value={v} /> },
             { title: t('reports.vatAmount'), dataIndex: 'vat', className: 'num', render: (v: number) => <Money value={v} /> },
@@ -202,8 +203,8 @@ function VatReport() {
           <Alert type="info" showIcon style={{ marginBottom: 16 }} title={`${t('reports.emirate')}: ${t(`settings.${data.emirate}`)}`} />
           <Table size="small" rowKey="box" pagination={false} dataSource={data.boxes} columns={[
             { title: t('reports.box'), dataIndex: 'box', width: 70 },
-            { title: t('reports.boxLabel'), dataIndex: 'label' },
-            { title: t('reports.net'), dataIndex: 'amount', className: 'num', render: (v: number) => <Money value={v} /> },
+            { title: t('reports.boxLabel'), dataIndex: 'label', render: (v: string, b) => vatBoxLabel(t, b.box, v) },
+            { title: t('reports.net'), dataIndex: 'amount', className: 'num', render: (v: number, b) => (isTaxOnlyVatBox(b.box) ? '' : <Money value={v} />) },
             { title: t('reports.vatAmount'), dataIndex: 'vat', className: 'num', render: (v: number) => <Money value={v} /> },
           ]} />
         </>

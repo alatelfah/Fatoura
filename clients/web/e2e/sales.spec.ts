@@ -115,7 +115,7 @@ test('admin sets up USD and issues a USD invoice that states VAT in AED', async 
   await page.goto('/invoices/new');
   await pick(page, 'clients-select', clientName);
   await pick(page, 'document-currency', 'USD');
-  await expect(page.getByTestId('document-rate')).toHaveValue('3.672500');
+  await expect(page.getByTestId('document-rate')).toHaveValue('3.6725');
   await page.getByTestId('line-0-description').fill('Consulting');
   await page.getByTestId('line-0-qty').fill('10');
   await page.getByTestId('line-0-price').fill('99.99');

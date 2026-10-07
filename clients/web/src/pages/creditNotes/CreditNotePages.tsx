@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { $api, openPdf } from '../../api/client';
 import { DocumentView } from '../../components/DocumentView';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { formatDate } from '../../utils/format';
 import { Button } from 'antd';
@@ -30,7 +30,7 @@ export function CreditNotesPage() {
           { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
           { title: t('creditNote.againstInvoice'), dataIndex: 'invoiceNumber', render: (v: string) => <Ltr>{v}</Ltr> },
-          { title: t('doc.client'), dataIndex: 'clientName' },
+          { title: t('doc.client'), dataIndex: 'clientName', render: (v: string) => <Auto>{v}</Auto> },
           { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('doc.createdBy'), dataIndex: 'createdByName' },
         ]}
@@ -47,7 +47,7 @@ export function CreditNoteViewPage() {
   return (
     <>
       <PageHeader
-        title={<>{t('nav.creditNotes')} <Ltr>{c.number}</Ltr></>}
+        title={<>{t('settings.CreditNote')} <Ltr>{c.number}</Ltr></>}
         extra={<Button icon={<FilePdfOutlined />} onClick={() => openPdf(`/api/credit-notes/${id}/pdf`)}>{t('common.print')}</Button>}
       />
       <DocumentView

@@ -8,7 +8,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { $api, fetchClient, openPdf, type Schemas } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { DocumentView } from '../../components/DocumentView';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { applyProblem } from '../../components/problems';
 import { formatDate, formatQty, isoDate } from '../../utils/format';
@@ -50,7 +50,7 @@ export function InvoicesPage() {
         columns={[
           { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-          { title: t('doc.client'), dataIndex: 'clientName' },
+          { title: t('doc.client'), dataIndex: 'clientName', render: (v: string) => <Auto>{v}</Auto> },
           { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('doc.paid'), dataIndex: 'paidTotal', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('doc.balance'), dataIndex: 'balance', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
@@ -99,7 +99,7 @@ export function InvoiceViewPage() {
   return (
     <>
       <PageHeader
-        title={<>{t('nav.invoices')} <Ltr>{inv.number}</Ltr></>}
+        title={<>{t('settings.Invoice')} <Ltr>{inv.number}</Ltr></>}
         subtitle={<InvoiceStatusTag status={inv.status} balance={inv.balance} />}
         extra={
           <>

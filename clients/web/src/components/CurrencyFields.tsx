@@ -37,7 +37,7 @@ export function CurrencyFields({ form, existing }: { form: FormInstance; existin
       {currency !== BASE_CURRENCY && (
         <Col xs={12} md={6}>
           <Form.Item name="exchangeRate" label={t('doc.exchangeRate', { currency })} rules={[{ required: true, message: t('common.required') }]}>
-            <InputNumber min={0.000001} max={100000} precision={6} style={{ width: '100%' }} data-testid="document-rate" />
+            <InputNumber min={0.000001} max={100000} step={0.0001} style={{ width: '100%' }} data-testid="document-rate" />
           </Form.Item>
         </Col>
       )}

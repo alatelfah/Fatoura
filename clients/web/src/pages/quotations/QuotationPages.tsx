@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { $api, fetchClient, openPdf, type Schemas } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { DocumentView } from '../../components/DocumentView';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { applyProblem } from '../../components/problems';
 import { formatDate } from '../../utils/format';
@@ -54,7 +54,7 @@ export function QuotationsPage() {
         columns={[
           { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-          { title: t('doc.client'), dataIndex: 'clientName' },
+          { title: t('doc.client'), dataIndex: 'clientName', render: (v: string) => <Auto>{v}</Auto> },
           { title: t('doc.validUntil'), dataIndex: 'validUntil', render: formatDate },
           { title: t('common.status'), dataIndex: 'status', render: (s: Schemas['QuotationStatus'], r) => <QuotationStatusTag status={s} expired={r.isExpired} /> },
           { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
@@ -119,7 +119,7 @@ export function QuotationViewPage() {
   return (
     <>
       <PageHeader
-        title={<>{t('nav.quotations')} <Ltr>{q.number}</Ltr></>}
+        title={<>{t('settings.Quotation')} <Ltr>{q.number}</Ltr></>}
         subtitle={<QuotationStatusTag status={q.status} expired={q.isExpired} />}
         extra={
           <>

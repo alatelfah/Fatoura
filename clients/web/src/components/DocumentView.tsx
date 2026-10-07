@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BASE_CURRENCY } from '@fatoura/shared';
 import type { Schemas } from '../api/client';
-import { Ltr, Money } from './Ltr';
+import { Auto, Ltr, Money } from './Ltr';
 import { formatDate, formatQty } from '../utils/format';
 
 /** Purchase lines have no discount. */
@@ -13,6 +13,8 @@ interface Props {
   number: string;
   date: string;
   client: Schemas['PartyDto'];
+  /** Label for the party: the client on sales documents, the supplier on purchases. */
+  partyLabel?: string;
   info?: Array<{ label: string; value: ReactNode }>;
   lines: Line[];
   /** Document discount in money; with one, sub total is shown before it and a Discount column is added. */
@@ -29,7 +31,7 @@ interface Props {
 }
 
 /** Read-only view of a sales document, laid out like the printed version. */
-export function DocumentView({ number, date, client, info = [], lines, discount = 0, discountLabel, subTotal, vatTotal, total, currency, terms, extraColumns = [] }: Props) {
+export function DocumentView({ number, date, client, partyLabel, info = [], lines, discount = 0, discountLabel, subTotal, vatTotal, total, currency, terms, extraColumns = [] }: Props) {
   const { t } = useTranslation();
   const hasDiscount = discount !== 0;
   const code = currency?.code ?? BASE_CURRENCY;
@@ -39,8 +41,8 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
       <Row gutter={[24, 16]}>
         <Col xs={24} md={14}>
           <Descriptions column={1} size="small" items={[
-            { key: 'client', label: t('contact.clientName'), children: <strong>{client.name}</strong> },
-            { key: 'address', label: t('contact.address'), children: client.address || '—' },
+            { key: 'client', label: partyLabel ?? t('contact.clientName'), children: <strong><Auto>{client.name}</Auto></strong> },
+            { key: 'address', label: t('contact.address'), children: client.address ? <Auto>{client.address}</Auto> : '—' },
             { key: 'phone', label: t('contact.phone'), children: <Ltr>{client.phone || '—'}</Ltr> },
             { key: 'trn', label: t('contact.trn'), children: <strong><Ltr>{client.trn || '—'}</Ltr></strong> },
           ]} />
@@ -64,8 +66,8 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
         dataSource={[...lines].sort((a, b) => a.lineNo - b.lineNo)}
         scroll={{ x: 800 }}
         columns={[
-          { title: 'Sl.No', dataIndex: 'lineNo', width: 60, align: 'center' },
-          { title: t('doc.description'), dataIndex: 'description', render: (v: string) => <span style={{ whiteSpace: 'pre-wrap' }}>{v}</span> },
+          { title: t('doc.slNo'), dataIndex: 'lineNo', width: 60, align: 'center' },
+          { title: t('doc.description'), dataIndex: 'description', render: (v: string) => <span dir="auto" style={{ whiteSpace: 'pre-wrap', display: 'block' }}>{v}</span> },
           { title: t('doc.qty'), dataIndex: 'quantity', className: 'num', render: (v: number) => <Ltr>{formatQty(v)}</Ltr> },
           { title: t('doc.unitPriceIn', { currency: code }), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
           ...(hasDiscount ? [{ title: t('doc.discount'), dataIndex: 'discount', className: 'num', render: (v: number) => <Money value={v} /> }] : []),
@@ -106,9 +108,11 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
       {terms && (terms.paymentTerms || terms.completionOfWork || terms.notes) && (
         <div style={{ marginTop: 16 }}>
           <Typography.Text strong>{t('doc.terms')}</Typography.Text>
-          {terms.paymentTerms && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.paymentTerms')}: {terms.paymentTerms}</Typography.Paragraph>}
-          {terms.completionOfWork && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.completionOfWork')}: {terms.completionOfWork}</Typography.Paragraph>}
-          {terms.notes && <Typography.Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 4 }}>{terms.notes}</Typography.Paragraph>}
+          {terms.paymentTerms && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.paymentTerms')}: <Auto>{terms.paymentTerms}</Auto></Typography.Paragraph>}
+          {terms.completionOfWork && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.completionOfWork')}: <Auto>{terms.completionOfWork}</Auto></Typography.Paragraph>}
+          {terms.notes.split('\n').filter((n) => n.trim()).map((n, i) => (
+            <Typography.Paragraph key={i} dir="auto" style={{ marginBottom: 4 }}>{n}</Typography.Paragraph>
+          ))}
         </div>
       )}
     </Card>

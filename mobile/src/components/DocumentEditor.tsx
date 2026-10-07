@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, View } from 'react-native';
 import { Button, Card, Divider, IconButton, List, Menu, Modal, Portal, Searchbar, SegmentedButtons, Text, TextInput } from 'react-native-paper';
-import { BASE_CURRENCY, previewDocument, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
+import { BASE_CURRENCY, itemLineDescription, previewDocument, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../lib/api';
 import { parseNumber } from '../lib/format';
 import { Money } from './ui';
@@ -179,7 +179,7 @@ export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChan
             <TextInput label={t('doc.description')} value={line.description} onChangeText={(description) => update(line.key, { description })} mode="outlined" multiline dense testID={`line-${index}-description`} />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TextInput style={{ flex: 1 }} label={t('doc.qty')} value={line.qty} onChangeText={(qty) => update(line.key, { qty })} keyboardType="decimal-pad" mode="outlined" dense testID={`line-${index}-qty`} />
-              <TextInput style={{ flex: 1.4 }} label={t('doc.unitPrice')} value={line.price} onChangeText={(price) => update(line.key, { price })} keyboardType="decimal-pad" mode="outlined" dense testID={`line-${index}-price`} />
+              <TextInput style={{ flex: 1.4 }} label={t('doc.unitPriceIn', { currency: currency?.code ?? BASE_CURRENCY })} value={line.price} onChangeText={(price) => update(line.key, { price })} keyboardType="decimal-pad" mode="outlined" dense testID={`line-${index}-price`} />
             </View>
             <SegmentedButtons density="small" value={line.tax} onValueChange={(tax) => update(line.key, { tax: tax as TaxCategory })} buttons={TAXES.map((x) => ({ value: x, label: t(`item.${x}`) }))} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -246,7 +246,7 @@ export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChan
         search={search}
         onSearch={setSearch}
         describe={(i) => `${i.unitPrice.toFixed(2)} · ${t(`item.${i.taxCategory}`)}`}
-        onPick={(item) => pickFor !== null && update(pickFor, { itemId: item.id, description: item.description || item.name, price: String(item.unitPrice), tax: item.taxCategory })}
+        onPick={(item) => pickFor !== null && update(pickFor, { itemId: item.id, description: itemLineDescription(item.name, item.description), price: String(item.unitPrice), tax: item.taxCategory })}
       />
     </View>
   );

@@ -86,7 +86,7 @@ function CashierDashboard() {
       <Text variant="titleMedium">{t('dashboard.welcome', { name: user?.displayName })}</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         <Kpi title={`${t('dashboard.todaySales')} (${t('dashboard.inclVat')})`} value={data.shiftSalesTotal} testID="kpi-shift-total" />
-        <Kpi title={t('dashboard.shiftInvoices')} value={data.shiftInvoiceCount} />
+        <Kpi title={t('dashboard.shiftInvoices')} value={data.shiftInvoiceCount} count />
       </View>
       <Button mode="contained" icon="file-plus-outline" onPress={() => router.push('/invoice/new')} testID="quick-new-invoice">
         {t('dashboard.newInvoice')}

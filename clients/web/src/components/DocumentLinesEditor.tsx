@@ -2,7 +2,7 @@ import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Flex, Form, Input, InputNumber, Select, Typography, type FormInstance } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BASE_CURRENCY, previewDocument, TAX_CATEGORIES, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
+import { BASE_CURRENCY, itemLineDescription, previewDocument, TAX_CATEGORIES, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../api/client';
 import { Money } from './Ltr';
 
@@ -50,7 +50,7 @@ export function DocumentLinesEditor({ form, vatRate, purchase, discount }: Props
     form.setFieldValue(['lines', index], {
       ...current,
       itemId: item.id,
-      description: item.description || item.name,
+      description: itemLineDescription(item.name, item.description),
       unitPrice: purchase ? (item.avgCost > 0 ? Number(item.avgCost.toFixed(2)) : current.unitPrice) : item.unitPrice,
       taxCategory: item.taxCategory,
     });

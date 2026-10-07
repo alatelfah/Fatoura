@@ -309,7 +309,7 @@ function CurrencySettings() {
             <Input maxLength={100} data-testid="currency-name" />
           </Form.Item>
           <Form.Item name="rateToAed" label={t('settings.rateToAed')} rules={[{ required: true, message: t('common.required') }]}>
-            <InputNumber min={0.000001} max={100000} precision={6} stringMode={false} style={{ width: '100%' }} data-testid="currency-rate" />
+            <InputNumber min={0.000001} max={100000} step={0.0001} style={{ width: '100%' }} data-testid="currency-rate" />
           </Form.Item>
           <Form.Item name="isActive" label={t('settings.active')} valuePropName="checked">
             <Switch />

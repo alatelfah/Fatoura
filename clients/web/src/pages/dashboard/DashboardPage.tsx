@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { $api, type Schemas } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
-import { Ltr, Money } from '../../components/Ltr';
+import { Auto, Ltr, Money } from '../../components/Ltr';
 import { PageHeader } from '../../components/PageHeader';
 import { formatDate, formatMoney, formatQty } from '../../utils/format';
 
@@ -41,7 +41,7 @@ function RecentInvoices({ invoices }: { invoices: Schemas['RecentInvoiceDto'][] 
       columns={[
         { title: t('doc.number'), dataIndex: 'number', render: (n: string, r) => <Link to={`/invoices/${r.id}`}><Ltr>{n}</Ltr></Link> },
         { title: t('doc.date'), dataIndex: 'date', render: formatDate },
-        { title: t('doc.client'), dataIndex: 'clientName' },
+        { title: t('doc.client'), dataIndex: 'clientName', render: (v: string) => <Auto>{v}</Auto> },
         { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
         {
           title: t('doc.balance'),
@@ -66,7 +66,7 @@ function AdminDashboard() {
 
   return (
     <>
-      <PageHeader title={t('dashboard.welcome', { name: user?.displayName })} subtitle={`${t('dashboard.yearToDate')}: ${formatDate(data.period.from)} – ${formatDate(data.period.to)}`} />
+      <PageHeader title={t('dashboard.welcome', { name: user?.displayName })} subtitle={`${t('dashboard.yearToDate')}: ${formatDate(data.period.from)} – ${formatDate(data.period.to)} · ${t('reports.inAed')}`} />
       {settings.data && !settings.data.isComplete && (
         <Alert type="warning" showIcon title={t('settings.incomplete')} action={<Link to="/settings">{t('nav.settings')}</Link>} style={{ marginBottom: 16 }} />
       )}

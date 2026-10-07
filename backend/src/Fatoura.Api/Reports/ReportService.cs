@@ -35,7 +35,13 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
         var creditRows = await credits
             .Select(c => new SalesReportRow(SalesDocumentKind.CreditNote, c.Id, c.Number, c.Date, c.ClientSnapshot.Name, c.CreatedBy!.DisplayName, c.Currency, -c.SubTotalAed, -c.VatTotalAed, -c.TotalAed))
             .ToListAsync(ct);
-        var cashierIds = await invoices.Select(i => new { i.CreatedById, i.CreatedBy!.DisplayName, SubTotal = i.SubTotalAed, VatTotal = i.VatTotalAed, Total = i.TotalAed }).ToListAsync(ct);
+        // Credit notes count against the cashier who issued them, so the breakdown adds up to net sales.
+        var cashierRows = (await invoices
+                .Select(i => new { i.CreatedById, i.CreatedBy!.DisplayName, IsInvoice = true, SubTotal = i.SubTotalAed, VatTotal = i.VatTotalAed, Total = i.TotalAed })
+                .ToListAsync(ct))
+            .Concat(await credits
+                .Select(c => new { c.CreatedById, c.CreatedBy!.DisplayName, IsInvoice = false, SubTotal = -c.SubTotalAed, VatTotal = -c.VatTotalAed, Total = -c.TotalAed })
+                .ToListAsync(ct));
 
         var summary = new SalesSummary(
             invoiceRows.Count, invoiceRows.Sum(r => r.Net), invoiceRows.Sum(r => r.Vat), invoiceRows.Sum(r => r.Total),
@@ -44,8 +50,8 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
             invoiceRows.Sum(r => r.Vat) + creditRows.Sum(r => r.Vat),
             invoiceRows.Sum(r => r.Total) + creditRows.Sum(r => r.Total));
 
-        var byCashier = cashierIds.GroupBy(x => new { x.CreatedById, x.DisplayName })
-            .Select(g => new SalesByCashier(g.Key.CreatedById, g.Key.DisplayName, g.Count(), g.Sum(x => x.SubTotal), g.Sum(x => x.VatTotal), g.Sum(x => x.Total)))
+        var byCashier = cashierRows.GroupBy(x => new { x.CreatedById, x.DisplayName })
+            .Select(g => new SalesByCashier(g.Key.CreatedById, g.Key.DisplayName, g.Count(x => x.IsInvoice), g.Sum(x => x.SubTotal), g.Sum(x => x.VatTotal), g.Sum(x => x.Total)))
             .OrderByDescending(x => x.Total).ToList();
 
         var rows = invoiceRows.Concat(creditRows).OrderBy(r => r.Date).ThenBy(r => r.Kind).ThenBy(r => r.Number, StringComparer.Ordinal).ToList();

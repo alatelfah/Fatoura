@@ -43,8 +43,20 @@ export function DocumentDetails({ number, date, client, lines, discount = 0, sub
           {[...lines].sort((a, b) => a.lineNo - b.lineNo).map((l) => (
             <View key={l.id}>
               <Text>{l.lineNo}. {l.description}</Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ opacity: 0.7, writingDirection: 'ltr' }}>{formatQty(l.quantity)} × {formatMoney(l.unitPrice)}{l.discount ? ` − ${formatMoney(l.discount)} ${t('doc.discount')}` : ''} · {t('doc.vat')} {formatMoney(l.vat)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', columnGap: 10 }}>
+                  <Ltr style={{ opacity: 0.7 }}>{formatQty(l.quantity)} × {formatMoney(l.unitPrice)}</Ltr>
+                  {!!l.discount && (
+                    <View style={{ flexDirection: 'row', gap: 4 }}>
+                      <Text style={{ opacity: 0.7 }}>{t('doc.discount')}</Text>
+                      <Ltr style={{ opacity: 0.7 }}>-{formatMoney(l.discount)}</Ltr>
+                    </View>
+                  )}
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    <Text style={{ opacity: 0.7 }}>{t('doc.vat')}</Text>
+                    <Ltr style={{ opacity: 0.7 }}>{formatMoney(l.vat)}</Ltr>
+                  </View>
+                </View>
                 <Money value={l.total} bold />
               </View>
             </View>

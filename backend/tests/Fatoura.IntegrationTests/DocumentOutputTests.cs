@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using ClosedXML.Excel;
+using Fatoura.Api.Data.Entities;
 using Fatoura.Api.Documents;
 using Fatoura.Api.Pdf;
 using Fatoura.IntegrationTests.Infrastructure;
@@ -51,6 +52,16 @@ public class DocumentOutputTests(ApiFactory api) : IClassFixture<ApiFactory>, IA
 
         (await api.CreateClient().GetAsync($"/api/invoices/{invoice.Id}/pdf")).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         (await cashier.GetAsync("/api/invoices/999999/pdf")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public void Vat_label_states_only_the_rate_the_lines_carry()
+    {
+        static InvoiceLine Line(decimal rate) => new() { VatRate = rate };
+        PdfService.VatLabel([Line(0.05m), Line(0.05m)], 0.05m).ShouldBe("VAT 5%");
+        PdfService.VatLabel([Line(0m), Line(0m)], 0.05m).ShouldBe("VAT 0%");
+        PdfService.VatLabel([Line(0.05m), Line(0m)], 0.05m).ShouldBe("VAT");
+        PdfService.VatLabel([], 0.05m).ShouldBe("VAT 5%");
     }
 
     [Fact]

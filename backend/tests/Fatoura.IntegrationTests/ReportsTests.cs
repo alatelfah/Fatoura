@@ -153,6 +153,11 @@ public class ReportsTests(ReportScenarioFixture fixture) : IClassFixture<ReportS
         s.NetTotal.ShouldBe(Dec(expected, "netTotal"));
         report.Rows.Sum(r => r.Total).ShouldBe(s.NetTotal);
         report.Rows.ShouldNotContain(r => r.Number == _invoices["I3"].Number); // void excluded
+
+        // The cashier breakdown nets each cashier's credit notes, so it adds up to the summary.
+        report.ByCashier.Sum(c => c.Net).ShouldBe(s.NetSales);
+        report.ByCashier.Sum(c => c.Total).ShouldBe(s.NetTotal);
+        report.ByCashier.Sum(c => c.InvoiceCount).ShouldBe(s.InvoiceCount);
     }
 
     [Fact]

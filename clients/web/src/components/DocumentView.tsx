@@ -111,7 +111,7 @@ export function DocumentView({ number, date, client, partyLabel, info = [], line
           {terms.paymentTerms && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.paymentTerms')}: <Auto>{terms.paymentTerms}</Auto></Typography.Paragraph>}
           {terms.completionOfWork && <Typography.Paragraph style={{ marginBottom: 4 }}>{t('doc.completionOfWork')}: <Auto>{terms.completionOfWork}</Auto></Typography.Paragraph>}
           {terms.notes.split('\n').filter((n) => n.trim()).map((n, i) => (
-            <Typography.Paragraph key={i} dir="auto" style={{ marginBottom: 4 }}>{n}</Typography.Paragraph>
+            <Typography.Paragraph key={i} style={{ marginBottom: 4 }}><Auto>{n}</Auto></Typography.Paragraph>
           ))}
         </div>
       )}

@@ -20,6 +20,9 @@ public sealed class SeedOptions
 
 public static class DbInitializer
 {
+    /// <summary>How long start-up waits for SQL Server, which may still be starting (e.g. under docker compose).</summary>
+    public static readonly TimeSpan ServerStartupTimeout = TimeSpan.FromMinutes(3);
+
     public const string DefaultClosingText =
         "We hope that you will find our price most competitive and look forward to your valuable order. " +
         "For any clarification, feel free to contact us. Assuring you of our best services.";
@@ -32,10 +35,7 @@ public static class DbInitializer
         var time = sp.GetRequiredService<TimeProvider>();
         var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbInitializer));
 
-        if (migrate)
-        {
-            await db.Database.MigrateAsync(ct);
-        }
+        await WaitForServerAsync(db, migrate, logger, time, ct);
 
         var roles = sp.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
         foreach (var role in Roles.All)
@@ -96,6 +96,39 @@ public static class DbInitializer
 
             await users.AddToRoleAsync(admin, Roles.Admin);
             logger.LogInformation("Created seed Admin {Email}.", seed.AdminEmail);
+        }
+    }
+
+    /// <summary>
+    /// Applies migrations (or just checks the connection), retrying while SQL Server is unreachable or still starting,
+    /// for up to <see cref="ServerStartupTimeout"/>. Each failure is logged, so a wrong password shows up in the log.
+    /// </summary>
+    private static async Task WaitForServerAsync(FatouraDbContext db, bool migrate, ILogger logger, TimeProvider time, CancellationToken ct)
+    {
+        var started = time.GetTimestamp();
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                if (migrate)
+                {
+                    await db.Database.MigrateAsync(ct);
+                    return;
+                }
+
+                if (await db.Database.CanConnectAsync(ct))
+                {
+                    return;
+                }
+
+                throw new InvalidOperationException("Cannot connect to the database.");
+            }
+            catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException or InvalidOperationException
+                && time.GetElapsedTime(started) < ServerStartupTimeout)
+            {
+                logger.LogWarning("Database not reachable yet (attempt {Attempt}): {Message}. Retrying in 5 seconds.", attempt, ex.GetBaseException().Message);
+                await Task.Delay(TimeSpan.FromSeconds(5), time, ct);
+            }
         }
     }
 }

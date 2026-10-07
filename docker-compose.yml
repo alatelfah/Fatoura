@@ -13,9 +13,10 @@ services:
     volumes:
       - mssql-data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      # 127.0.0.1 rather than localhost: on Docker Desktop "localhost" may try IPv6 first and stall past the timeout.
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S 127.0.0.1 -l 10 -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
       interval: 10s
-      timeout: 5s
+      timeout: 20s
       retries: 12
       # The first start (creating the system databases) can take minutes on Docker Desktop for Windows/macOS.
       start_period: 180s
@@ -30,9 +31,9 @@ services:
       Seed__AdminEmail: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
       Seed__AdminPassword: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
       Seed__AdminName: ${ADMIN_NAME:-Administrator}
+    # The API waits for SQL Server itself (up to 3 minutes), so it does not depend on the health check passing.
     depends_on:
-      mssql:
-        condition: service_healthy
+      - mssql
     restart: unless-stopped
 
   web:

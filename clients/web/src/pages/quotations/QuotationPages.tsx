@@ -57,7 +57,7 @@ export function QuotationsPage() {
           { title: t('doc.client'), dataIndex: 'clientName' },
           { title: t('doc.validUntil'), dataIndex: 'validUntil', render: formatDate },
           { title: t('common.status'), dataIndex: 'status', render: (s: Schemas['QuotationStatus'], r) => <QuotationStatusTag status={s} expired={r.isExpired} /> },
-          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('doc.createdBy'), dataIndex: 'createdByName' },
         ]}
       />
@@ -156,6 +156,7 @@ export function QuotationViewPage() {
         subTotal={q.subTotal}
         vatTotal={q.vatTotal}
         total={q.total}
+        currency={q.currency}
         terms={q.terms}
       />
     </>

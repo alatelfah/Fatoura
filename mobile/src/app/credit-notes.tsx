@@ -20,7 +20,7 @@ export default function CreditNotesScreen() {
             title={item.clientName}
             description={`${item.number} · ${item.invoiceNumber} · ${formatDate(item.date)}`}
             onPress={() => router.push(`/credit-note/${item.id}`)}
-            right={() => <View style={{ justifyContent: 'center' }}><Money value={item.total} bold /></View>}
+            right={() => <View style={{ justifyContent: 'center' }}><Money value={item.total} currency={item.currency} bold /></View>}
           />
         )}
       />

@@ -28,7 +28,7 @@ export default function QuotationsScreen() {
             onPress={() => router.push(`/quotation/${item.id}`)}
             right={() => (
               <View style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 4 }}>
-                <Money value={item.total} bold />
+                <Money value={item.total} currency={item.currency} bold />
                 <StatusChip label={t(`quotation.${item.status}`)} color={QUOTATION_COLORS[item.status]} />
               </View>
             )}

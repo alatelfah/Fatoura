@@ -42,6 +42,7 @@ export default function QuotationScreen() {
           subTotal={q.subTotal}
           vatTotal={q.vatTotal}
           total={q.total}
+          currency={q.currency}
           extra={[
             [t('doc.validUntil'), formatDate(q.validUntil)],
             ...(q.convertedInvoiceNumber ? [[t('quotation.invoice'), <Ltr key="i">{q.convertedInvoiceNumber}</Ltr>] as [string, React.ReactNode]] : []),

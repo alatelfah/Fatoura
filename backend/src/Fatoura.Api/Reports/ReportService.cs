@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Fatoura.Api.Reports;
 
 /// <summary>
-/// Report figures. Void invoices are excluded everywhere; credit notes count in the period of their own date and
-/// reduce sales and output VAT. All "net" amounts exclude VAT.
+/// Report figures, all in AED (documents in other currencies use their AED equivalents). Void invoices are excluded
+/// everywhere; credit notes count in the period of their own date and reduce sales and output VAT. All "net" amounts exclude VAT.
 /// </summary>
 public sealed class ReportService(FatouraDbContext db, SettingsService settings)
 {
@@ -30,12 +30,12 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
         }
 
         var invoiceRows = await invoices
-            .Select(i => new SalesReportRow(SalesDocumentKind.Invoice, i.Id, i.Number, i.Date, i.ClientSnapshot.Name, i.CreatedBy!.DisplayName, i.SubTotal, i.VatTotal, i.Total))
+            .Select(i => new SalesReportRow(SalesDocumentKind.Invoice, i.Id, i.Number, i.Date, i.ClientSnapshot.Name, i.CreatedBy!.DisplayName, i.Currency, i.SubTotalAed, i.VatTotalAed, i.TotalAed))
             .ToListAsync(ct);
         var creditRows = await credits
-            .Select(c => new SalesReportRow(SalesDocumentKind.CreditNote, c.Id, c.Number, c.Date, c.ClientSnapshot.Name, c.CreatedBy!.DisplayName, -c.SubTotal, -c.VatTotal, -c.Total))
+            .Select(c => new SalesReportRow(SalesDocumentKind.CreditNote, c.Id, c.Number, c.Date, c.ClientSnapshot.Name, c.CreatedBy!.DisplayName, c.Currency, -c.SubTotalAed, -c.VatTotalAed, -c.TotalAed))
             .ToListAsync(ct);
-        var cashierIds = await invoices.Select(i => new { i.CreatedById, i.CreatedBy!.DisplayName, i.SubTotal, i.VatTotal, i.Total }).ToListAsync(ct);
+        var cashierIds = await invoices.Select(i => new { i.CreatedById, i.CreatedBy!.DisplayName, SubTotal = i.SubTotalAed, VatTotal = i.VatTotalAed, Total = i.TotalAed }).ToListAsync(ct);
 
         var summary = new SalesSummary(
             invoiceRows.Count, invoiceRows.Sum(r => r.Net), invoiceRows.Sum(r => r.Vat), invoiceRows.Sum(r => r.Total),
@@ -61,9 +61,9 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
         }
 
         var rows = await q.OrderBy(p => p.Date).ThenBy(p => p.Id)
-            .Select(p => new PurchaseReportRow(p.Id, p.Number, p.SupplierInvoiceNo, p.Date, p.SupplierSnapshot.Name, p.SubTotal, p.VatTotal, p.Total))
+            .Select(p => new PurchaseReportRow(p.Id, p.Number, p.SupplierInvoiceNo, p.Date, p.SupplierSnapshot.Name, p.Currency, p.SubTotalAed, p.VatTotalAed, p.TotalAed))
             .ToListAsync(ct);
-        var bySupplier = (await q.Select(p => new { p.SupplierId, p.SupplierSnapshot.Name, p.SubTotal, p.VatTotal, p.Total }).ToListAsync(ct))
+        var bySupplier = (await q.Select(p => new { p.SupplierId, p.SupplierSnapshot.Name, SubTotal = p.SubTotalAed, VatTotal = p.VatTotalAed, Total = p.TotalAed }).ToListAsync(ct))
             .GroupBy(p => p.SupplierId)
             .Select(g => new PurchasesBySupplier(g.Key, g.First().Name, g.Count(), g.Sum(x => x.SubTotal), g.Sum(x => x.VatTotal), g.Sum(x => x.Total)))
             .OrderByDescending(x => x.Total).ToList();
@@ -74,12 +74,12 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
     {
         var sales = await db.Invoices.AsNoTracking()
             .Where(i => i.Status == InvoiceStatus.Issued && i.Date >= period.From && i.Date <= period.To)
-            .Select(i => new { i.Date, i.SubTotal }).ToListAsync(ct);
+            .Select(i => new { i.Date, SubTotal = i.SubTotalAed }).ToListAsync(ct);
         var credits = await db.CreditNotes.AsNoTracking()
             .Where(c => c.Date >= period.From && c.Date <= period.To)
-            .Select(c => new { c.Date, c.SubTotal }).ToListAsync(ct);
+            .Select(c => new { c.Date, SubTotal = c.SubTotalAed }).ToListAsync(ct);
         var purchaseLines = await db.PurchaseLines.AsNoTracking()
-            .Join(db.PurchaseInvoices, l => l.PurchaseInvoiceId, p => p.Id, (l, p) => new { p.Date, l.ItemId, l.ExpenseCategory, l.Net })
+            .Join(db.PurchaseInvoices, l => l.PurchaseInvoiceId, p => p.Id, (l, p) => new { p.Date, l.ItemId, l.ExpenseCategory, Net = l.NetAed })
             .Where(x => x.Date >= period.From && x.Date <= period.To)
             .ToListAsync(ct);
 
@@ -110,17 +110,17 @@ public sealed class ReportService(FatouraDbContext db, SettingsService settings)
     {
         var company = await settings.GetAsync(ct);
         var sales = await db.InvoiceLines.AsNoTracking()
-            .Join(db.Invoices, l => l.InvoiceId, i => i.Id, (l, i) => new { i.Date, i.Status, l.TaxCategory, l.Net, l.Vat })
+            .Join(db.Invoices, l => l.InvoiceId, i => i.Id, (l, i) => new { i.Date, i.Status, l.TaxCategory, Net = l.NetAed, Vat = l.VatAed })
             .Where(x => x.Status == InvoiceStatus.Issued && x.Date >= period.From && x.Date <= period.To)
             .GroupBy(x => x.TaxCategory).Select(g => new { Category = g.Key, Net = g.Sum(x => x.Net), Vat = g.Sum(x => x.Vat) })
             .ToListAsync(ct);
         var credits = await db.CreditNoteLines.AsNoTracking()
-            .Join(db.CreditNotes, l => l.CreditNoteId, c => c.Id, (l, c) => new { c.Date, l.TaxCategory, l.Net, l.Vat })
+            .Join(db.CreditNotes, l => l.CreditNoteId, c => c.Id, (l, c) => new { c.Date, l.TaxCategory, Net = l.NetAed, Vat = l.VatAed })
             .Where(x => x.Date >= period.From && x.Date <= period.To)
             .GroupBy(x => x.TaxCategory).Select(g => new { Category = g.Key, Net = g.Sum(x => x.Net), Vat = g.Sum(x => x.Vat) })
             .ToListAsync(ct);
         var inputLines = db.PurchaseLines.AsNoTracking()
-            .Join(db.PurchaseInvoices, l => l.PurchaseInvoiceId, p => p.Id, (l, p) => new { p.Date, l.TaxCategory, l.Net, l.Vat })
+            .Join(db.PurchaseInvoices, l => l.PurchaseInvoiceId, p => p.Id, (l, p) => new { p.Date, l.TaxCategory, Net = l.NetAed, Vat = l.VatAed })
             .Where(x => x.Date >= period.From && x.Date <= period.To && x.TaxCategory == TaxCategory.Standard);
         var inputNet = await inputLines.SumAsync(x => (decimal?)x.Net, ct) ?? 0;
         var inputVat = await inputLines.SumAsync(x => (decimal?)x.Vat, ct) ?? 0;

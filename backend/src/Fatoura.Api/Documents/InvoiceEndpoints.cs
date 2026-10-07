@@ -4,6 +4,7 @@ using Fatoura.Api.Data;
 using Fatoura.Api.Data.Entities;
 using Fatoura.Api.Infrastructure;
 using Fatoura.Api.Inventory;
+using Fatoura.Api.Settings;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,7 @@ public sealed record InvoiceDto(
     DateTimeOffset? VoidedAt,
     TermsDto Terms,
     DocumentDiscountDto Discount,
+    DocumentCurrencyDto Currency,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -64,6 +66,7 @@ public sealed record InvoiceSummaryDto(
     int ClientId,
     string ClientName,
     InvoiceStatus Status,
+    string Currency,
     decimal Total,
     decimal PaidTotal,
     decimal CreditedTotal,
@@ -76,10 +79,19 @@ public sealed record IssueInvoiceRequest(
     List<DocumentLineRequest> Lines,
     TermsRequest? Terms,
     PaymentRequest? Payment,
-    DocumentDiscountRequest? Discount = null);
+    DocumentDiscountRequest? Discount = null,
+    [property: MaxLength(3)] string? Currency = null,
+    decimal? ExchangeRate = null);
 
+/// <summary>Omitting the currency or rate keeps the invoice's own.</summary>
 public sealed record UpdateInvoiceRequest(
-    int ClientId, DateOnly Date, List<DocumentLineRequest> Lines, TermsRequest? Terms, DocumentDiscountRequest? Discount = null);
+    int ClientId,
+    DateOnly Date,
+    List<DocumentLineRequest> Lines,
+    TermsRequest? Terms,
+    DocumentDiscountRequest? Discount = null,
+    [property: MaxLength(3)] string? Currency = null,
+    decimal? ExchangeRate = null);
 
 public sealed record VoidInvoiceRequest([property: Required, MaxLength(500)] string Reason);
 
@@ -132,7 +144,7 @@ public static class InvoiceEndpoints
         var creditedTotal = i.CreditNotes.Sum(c => c.Total);
         return new InvoiceDto(
             i.Id, i.Number, i.Date, i.ClientId, i.ClientSnapshot.ToDto(), i.CompanySnapshot.ToDto(), i.QuotationId, i.QuotationNumber,
-            i.Status, i.VoidReason, i.VoidedAt, i.Terms(), i.DiscountDto(), i.SubTotal, i.VatTotal, i.Total, paid, creditedTotal,
+            i.Status, i.VoidReason, i.VoidedAt, i.Terms(), i.DiscountDto(), i.CurrencyDto(), i.SubTotal, i.VatTotal, i.Total, paid, creditedTotal,
             i.Status == InvoiceStatus.Void ? 0 : i.Total - creditedTotal - paid,
             i.CreatedById, i.CreatedBy?.DisplayName ?? string.Empty, i.CreatedAt,
             i.Lines.OrderBy(l => l.LineNo).Select(l => new InvoiceLineDto(
@@ -195,6 +207,7 @@ public static class InvoiceEndpoints
             i.ClientId,
             ClientName = i.ClientSnapshot.Name,
             i.Status,
+            i.Currency,
             i.Total,
             Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0,
             Credited = i.CreditNotes.Sum(cn => (decimal?)cn.Total) ?? 0,
@@ -207,7 +220,7 @@ public static class InvoiceEndpoints
         }
 
         var result = await projected.OrderByDescending(i => i.Date).ThenByDescending(i => i.Id)
-            .Select(i => new InvoiceSummaryDto(i.Id, i.Number, i.Date, i.ClientId, i.ClientName, i.Status, i.Total, i.Paid, i.Credited,
+            .Select(i => new InvoiceSummaryDto(i.Id, i.Number, i.Date, i.ClientId, i.ClientName, i.Status, i.Currency, i.Total, i.Paid, i.Credited,
                 i.Status == InvoiceStatus.Void ? 0 : i.Total - i.Credited - i.Paid, i.CreatedByName))
             .ToPagedAsync(page, pageSize, ct);
         return TypedResults.Ok(result);
@@ -222,12 +235,13 @@ public static class InvoiceEndpoints
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct);
         DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
+        var currency = await CurrencyEndpoints.ResolveAsync(db, r.Currency, r.ExchangeRate, v, ct);
         v.ThrowIfInvalid();
         var date = ResolveDate(r.Date, user, clock);
 
         var (id, warnings) = await db.InTransactionAsync(async () =>
         {
-            var (invoice, w) = await invoices.IssueAsync(new IssueInvoiceCommand(r.ClientId, date, r.Lines, r.Terms, r.Discount, Payment: r.Payment), ct);
+            var (invoice, w) = await invoices.IssueAsync(new IssueInvoiceCommand(r.ClientId, date, r.Lines, r.Terms, r.Discount, currency, Payment: r.Payment), ct);
             return (invoice.Id, w);
         }, ct);
 
@@ -240,12 +254,14 @@ public static class InvoiceEndpoints
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct, allowInactiveItems: true);
         DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
+        var existing = await db.Invoices.AsNoTracking().SingleOrDefaultAsync(i => i.Id == id, ct) ?? throw new NotFoundException("Invoice");
+        var currency = await CurrencyEndpoints.ResolveAsync(db, r.Currency, r.ExchangeRate, v, ct, existing);
         v.ThrowIfInvalid();
         var date = ResolveDate(r.Date, user, clock);
 
         var warnings = await db.InTransactionAsync(async () =>
         {
-            var (_, w) = await invoices.EditAsync(id, r.ClientId, date, r.Lines, r.Discount, r.Terms, ct);
+            var (_, w) = await invoices.EditAsync(id, r.ClientId, date, r.Lines, r.Discount, currency, r.Terms, ct);
             return w;
         }, ct);
 

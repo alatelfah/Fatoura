@@ -27,7 +27,9 @@ public sealed record PurchaseRequest(
     [property: MaxLength(60)] string? SupplierInvoiceNo,
     DateOnly Date,
     [property: MaxLength(2000)] string? Notes,
-    List<PurchaseLineRequest> Lines);
+    List<PurchaseLineRequest> Lines,
+    [property: MaxLength(3)] string? Currency = null,
+    decimal? ExchangeRate = null);
 
 public sealed record PurchaseLineDto(
     int Id,
@@ -51,6 +53,7 @@ public sealed record PurchaseDto(
     int SupplierId,
     PartyDto Supplier,
     string Notes,
+    DocumentCurrencyDto Currency,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -60,7 +63,7 @@ public sealed record PurchaseDto(
     List<PurchaseLineDto> Lines);
 
 public sealed record PurchaseSummaryDto(
-    int Id, string Number, string SupplierInvoiceNo, DateOnly Date, int SupplierId, string SupplierName, decimal SubTotal, decimal VatTotal, decimal Total);
+    int Id, string Number, string SupplierInvoiceNo, DateOnly Date, int SupplierId, string SupplierName, string Currency, decimal SubTotal, decimal VatTotal, decimal Total);
 
 public static class PurchaseEndpoints
 {
@@ -87,7 +90,7 @@ public static class PurchaseEndpoints
             .SingleOrDefaultAsync(x => x.P.Id == id, ct) ?? throw new NotFoundException("Purchase");
         var x = p.P;
         return new PurchaseDto(
-            x.Id, x.Number, x.SupplierInvoiceNo, x.Date, x.SupplierId, x.SupplierSnapshot.ToDto(), x.Notes, x.SubTotal, x.VatTotal, x.Total,
+            x.Id, x.Number, x.SupplierInvoiceNo, x.Date, x.SupplierId, x.SupplierSnapshot.ToDto(), x.Notes, x.CurrencyDto(), x.SubTotal, x.VatTotal, x.Total,
             p.HasAttachment, x.AttachmentFileName, x.CreatedAt,
             x.Lines.OrderBy(l => l.LineNo).Select(l => new PurchaseLineDto(
                 l.Id, l.LineNo, l.ItemId, l.Description, l.ExpenseCategory, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Net, l.Vat, l.Total)).ToList());
@@ -119,7 +122,7 @@ public static class PurchaseEndpoints
         }
 
         var result = await q.OrderByDescending(p => p.Date).ThenByDescending(p => p.Id)
-            .Select(p => new PurchaseSummaryDto(p.Id, p.Number, p.SupplierInvoiceNo, p.Date, p.SupplierId, p.SupplierSnapshot.Name, p.SubTotal, p.VatTotal, p.Total))
+            .Select(p => new PurchaseSummaryDto(p.Id, p.Number, p.SupplierInvoiceNo, p.Date, p.SupplierId, p.SupplierSnapshot.Name, p.Currency, p.SubTotal, p.VatTotal, p.Total))
             .ToPagedAsync(page, pageSize, ct);
         return TypedResults.Ok(result);
     }
@@ -137,7 +140,7 @@ public static class PurchaseEndpoints
         TimeProvider time,
         CancellationToken ct)
     {
-        await ValidateAsync(r, db, clock, ct);
+        var currency = await ValidateAsync(r, db, clock, null, ct);
         var id = await db.InTransactionAsync(async () =>
         {
             var settings = await settingsService.GetAsync(ct);
@@ -150,7 +153,7 @@ public static class PurchaseEndpoints
                 CreatedById = user.RequireId(),
                 CreatedAt = now,
             };
-            Apply(p, r, supplier, settings.VatRate, now);
+            Apply(p, r, supplier, settings.VatRate, currency, now);
             db.PurchaseInvoices.Add(p);
             await db.SaveChangesAsync(ct);
             await stock.ApplyAsync(StockChanges(p, p.Lines, +1, StockMovementType.Purchase), allowNegative: true, ct);
@@ -163,7 +166,8 @@ public static class PurchaseEndpoints
     private static async Task<Ok<PurchaseDto>> Update(
         int id, PurchaseRequest r, FatouraDbContext db, StockService stock, SettingsService settingsService, BusinessClock clock, TimeProvider time, CancellationToken ct)
     {
-        await ValidateAsync(r, db, clock, ct);
+        var existing = await db.PurchaseInvoices.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Purchase");
+        var currency = await ValidateAsync(r, db, clock, existing, ct);
         await db.InTransactionAsync(async () =>
         {
             var settings = await settingsService.GetAsync(ct);
@@ -174,7 +178,7 @@ public static class PurchaseEndpoints
             await stock.ApplyAsync(StockChanges(p, oldLines, -1, StockMovementType.PurchaseReversal), allowNegative: true, ct);
             db.PurchaseLines.RemoveRange(oldLines);
             p.Lines = [];
-            Apply(p, r, supplier, settings.VatRate, time.GetUtcNow());
+            Apply(p, r, supplier, settings.VatRate, currency, time.GetUtcNow());
             await db.SaveChangesAsync(ct);
             await stock.ApplyAsync(StockChanges(p, p.Lines, +1, StockMovementType.Purchase), allowNegative: true, ct);
             await db.SaveChangesAsync(ct);
@@ -236,7 +240,8 @@ public static class PurchaseEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task ValidateAsync(PurchaseRequest r, FatouraDbContext db, BusinessClock clock, CancellationToken ct)
+    private static async Task<DocumentCurrency> ValidateAsync(
+        PurchaseRequest r, FatouraDbContext db, BusinessClock clock, PurchaseInvoice? existing, CancellationToken ct)
     {
         var v = new FieldValidator().Require(r.Date <= clock.Today, "date", "The purchase date cannot be in the future.");
         await DocumentLines.ValidateAsync(r.Lines?.Select(ToLineRequest).ToList(), db, v, ct, allowInactiveItems: true);
@@ -245,12 +250,14 @@ public static class PurchaseEndpoints
             v.Require((l.ExpenseCategory?.Length ?? 0) <= 100, $"lines[{i}].expenseCategory", "Category must be at most 100 characters.");
         }
 
+        var currency = await CurrencyEndpoints.ResolveAsync(db, r.Currency, r.ExchangeRate, v, ct, existing);
         v.ThrowIfInvalid();
+        return currency;
     }
 
     private static DocumentLineRequest ToLineRequest(PurchaseLineRequest l) => new(l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory);
 
-    private static void Apply(PurchaseInvoice p, PurchaseRequest r, Supplier supplier, decimal vatRate, DateTimeOffset now)
+    private static void Apply(PurchaseInvoice p, PurchaseRequest r, Supplier supplier, decimal vatRate, DocumentCurrency currency, DateTimeOffset now)
     {
         p.SupplierId = supplier.Id;
         p.SupplierSnapshot = PartySnapshot.From(supplier);
@@ -264,6 +271,7 @@ public static class PurchaseEndpoints
         }
 
         (p.SubTotal, p.VatTotal, p.Total) = totals;
+        p.ApplyCurrency(currency, p.Lines);
         p.UpdatedAt = now;
     }
 
@@ -273,7 +281,8 @@ public static class PurchaseEndpoints
             .Select(g =>
             {
                 var qty = g.Sum(l => l.Quantity);
-                var cost = qty == 0 ? 0 : Math.Round(g.Sum(l => l.Net) / qty, 4);
+                // Stock is costed in AED whatever the purchase currency.
+                var cost = qty == 0 ? 0 : Math.Round(g.Sum(l => l.NetAed) / qty, 4);
                 return new StockChange(g.Key, sign * qty, type, p.Number, PurchaseInvoiceId: p.Id, UnitCost: sign > 0 ? cost : null);
             });
 }

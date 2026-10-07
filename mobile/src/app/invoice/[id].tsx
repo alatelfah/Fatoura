@@ -53,11 +53,12 @@ export default function InvoiceScreen() {
           subTotal={inv.subTotal}
           vatTotal={inv.vatTotal}
           total={inv.total}
+          currency={inv.currency}
           extra={[
             [t('doc.createdBy'), inv.createdByName],
-            [t('doc.paid'), <Money key="p" value={inv.paidTotal} />],
-            ...(inv.creditedTotal > 0 ? [[t('doc.credited'), <Money key="c" value={inv.creditedTotal} />] as [string, React.ReactNode]] : []),
-            [t('doc.balance'), <Money key="b" value={inv.balance} bold testID="invoice-balance" />],
+            [t('doc.paid'), <Money key="p" value={inv.paidTotal} currency={inv.currency.code} />],
+            ...(inv.creditedTotal > 0 ? [[t('doc.credited'), <Money key="c" value={inv.creditedTotal} currency={inv.currency.code} />] as [string, React.ReactNode]] : []),
+            [t('doc.balance'), <Money key="b" value={inv.balance} currency={inv.currency.code} bold testID="invoice-balance" />],
           ]}
         />
         <Button mode="contained" icon="share-variant" onPress={share} loading={sharing} testID="invoice-share">{t('mobile.share')}</Button>
@@ -71,7 +72,7 @@ export default function InvoiceScreen() {
           <Card>
             <Card.Title title={t('invoice.payments')} />
             {inv.payments.map((p) => (
-              <List.Item key={p.id} title={t(`invoice.${p.method}`)} description={formatDate(p.date)} right={() => <View style={{ justifyContent: 'center' }}><Money value={p.amount} /></View>} />
+              <List.Item key={p.id} title={t(`invoice.${p.method}`)} description={formatDate(p.date)} right={() => <View style={{ justifyContent: 'center' }}><Money value={p.amount} currency={inv.currency.code} /></View>} />
             ))}
           </Card>
         )}
@@ -79,7 +80,7 @@ export default function InvoiceScreen() {
           <Card>
             <Card.Title title={t('nav.creditNotes')} />
             {inv.creditNotes.map((c) => (
-              <List.Item key={c.id} title={<Ltr>{c.number}</Ltr>} description={c.reason} onPress={() => router.push(`/credit-note/${c.id}`)} right={() => <View style={{ justifyContent: 'center' }}><Money value={c.total} /></View>} />
+              <List.Item key={c.id} title={<Ltr>{c.number}</Ltr>} description={c.reason} onPress={() => router.push(`/credit-note/${c.id}`)} right={() => <View style={{ justifyContent: 'center' }}><Money value={c.total} currency={inv.currency.code} /></View>} />
             ))}
           </Card>
         )}

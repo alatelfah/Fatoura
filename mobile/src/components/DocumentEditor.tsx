@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, View } from 'react-native';
-import { Button, Card, Divider, IconButton, List, Modal, Portal, Searchbar, SegmentedButtons, Text, TextInput } from 'react-native-paper';
-import { previewDocument, type DiscountKind, type TaxCategory } from '@fatoura/shared';
+import { Button, Card, Divider, IconButton, List, Menu, Modal, Portal, Searchbar, SegmentedButtons, Text, TextInput } from 'react-native-paper';
+import { BASE_CURRENCY, previewDocument, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../lib/api';
 import { parseNumber } from '../lib/format';
 import { Money } from './ui';
@@ -51,6 +51,58 @@ export function preview(lines: EditableLine[], vatRate: number, discount?: Edita
   );
 }
 
+export interface EditableCurrency {
+  code: string;
+  rate: string;
+}
+
+export const aedCurrency: EditableCurrency = { code: BASE_CURRENCY, rate: '' };
+
+/** The request fields for a document's currency. */
+export function toCurrencyRequest(c: EditableCurrency): { currency: string; exchangeRate: number | null } {
+  return { currency: c.code, exchangeRate: c.code === BASE_CURRENCY ? null : (parseNumber(c.rate) ?? null) };
+}
+
+/** Currency menu (AED and the active currencies from Settings) and, for another currency, its editable rate. */
+export function CurrencyField({ value, onChange }: { value: EditableCurrency; onChange: (c: EditableCurrency) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const { data } = $api.useQuery('get', '/api/settings/currencies');
+  const options = [{ code: BASE_CURRENCY, rateToAed: 1 }, ...(data ?? []).filter((c) => c.isActive)];
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+      <Menu
+        visible={open}
+        onDismiss={() => setOpen(false)}
+        anchor={<Button mode="outlined" icon="cash-multiple" onPress={() => setOpen(true)} testID="document-currency">{value.code}</Button>}
+      >
+        {options.map((c) => (
+          <Menu.Item
+            key={c.code}
+            title={c.code}
+            onPress={() => {
+              onChange({ code: c.code, rate: c.code === BASE_CURRENCY ? '' : String(c.rateToAed) });
+              setOpen(false);
+            }}
+          />
+        ))}
+      </Menu>
+      {value.code !== BASE_CURRENCY && (
+        <TextInput
+          style={{ flex: 1 }}
+          label={t('doc.exchangeRate', { currency: value.code })}
+          value={value.rate}
+          onChangeText={(rate) => onChange({ ...value, rate })}
+          keyboardType="decimal-pad"
+          mode="outlined"
+          dense
+          testID="document-rate"
+        />
+      )}
+    </View>
+  );
+}
+
 /** Searchable picker in a modal (clients or items). */
 export function Picker<T extends { id: number; name: string }>({
   visible, onDismiss, onPick, title, items, search, onSearch, describe,
@@ -95,19 +147,23 @@ export function ClientField({ client, onChange }: { client: { id: number; name: 
 const TAXES: TaxCategory[] = ['Standard', 'ZeroRated', 'Exempt'];
 
 /** Line editor with live per-line VAT and totals using the same calculator as the server. */
-export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChange }: {
+export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChange, currency }: {
   lines: EditableLine[];
   onChange: (lines: EditableLine[]) => void;
   vatRate: number;
   /** Sales documents take a document-level discount. */
   discount?: EditableDiscount;
   onDiscountChange?: (discount: EditableDiscount) => void;
+  /** Another currency also shows the VAT and total in AED. */
+  currency?: EditableCurrency;
 }) {
   const { t } = useTranslation();
   const [pickFor, setPickFor] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const items = $api.useQuery('get', '/api/items', { params: { query: { search: search || undefined, pageSize: 100 } } }, { enabled: pickFor !== null });
   const totals = preview(lines, vatRate, discount);
+  const rate = currency && currency.code !== BASE_CURRENCY ? parseNumber(currency.rate) : null;
+  const aed = rate ? toAed(totals, rate) : null;
   const update = (key: number, patch: Partial<EditableLine>) => onChange(lines.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
   return (
@@ -170,7 +226,16 @@ export function LinesEditor({ lines, onChange, vatRate, discount, onDiscountChan
           )}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.vatTotal')} {Number((vatRate * 100).toFixed(2))}%</Text><Money value={totals.vatTotal.toFixed(2)} /></View>
           <Divider />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ fontWeight: '700' }}>{t('doc.total')}</Text><Money value={totals.total.toFixed(2)} bold testID="grand-total" /></View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ fontWeight: '700' }}>{currency && currency.code !== BASE_CURRENCY ? t('doc.totalIn', { currency: currency.code }) : t('doc.total')}</Text>
+            <Money value={totals.total.toFixed(2)} bold testID="grand-total" />
+          </View>
+          {aed && (
+            <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.vatAed')}</Text><Money value={aed.vatTotal.toFixed(2)} /></View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text>{t('doc.totalAed')}</Text><Money value={aed.total.toFixed(2)} testID="total-aed" /></View>
+            </>
+          )}
         </Card.Content>
       </Card>
       <Picker

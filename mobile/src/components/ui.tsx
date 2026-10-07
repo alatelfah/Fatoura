@@ -9,10 +9,12 @@ export function Ltr({ children, style, bold }: { children: ReactNode; style?: ob
   return <Text style={[{ writingDirection: 'ltr' }, bold && { fontWeight: '700' }, style]}>{children}</Text>;
 }
 
-export function Money({ value, bold, testID }: { value: number | string | null | undefined; bold?: boolean; testID?: string }) {
+/** An amount; a currency other than AED is shown after it. */
+export function Money({ value, bold, testID, currency }: { value: number | string | null | undefined; bold?: boolean; testID?: string; currency?: string }) {
   return (
     <Text style={[{ writingDirection: 'ltr', fontVariant: ['tabular-nums'] }, bold && { fontWeight: '700' }]} testID={testID}>
       {formatMoney(value ?? 0)}
+      {currency && currency !== 'AED' ? ` ${currency}` : ''}
     </Text>
   );
 }

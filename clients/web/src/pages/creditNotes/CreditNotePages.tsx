@@ -31,7 +31,7 @@ export function CreditNotesPage() {
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
           { title: t('creditNote.againstInvoice'), dataIndex: 'invoiceNumber', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.client'), dataIndex: 'clientName' },
-          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('doc.createdBy'), dataIndex: 'createdByName' },
         ]}
       />
@@ -65,6 +65,7 @@ export function CreditNoteViewPage() {
         subTotal={c.subTotal}
         vatTotal={c.vatTotal}
         total={c.total}
+        currency={c.currency}
       />
     </>
   );

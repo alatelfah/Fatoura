@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Fatoura.Api.Data;
 using Fatoura.Api.Data.Entities;
 using Fatoura.Api.Infrastructure;
+using Fatoura.Api.Settings;
 using Fatoura.Domain.Documents;
 using Fatoura.Domain.Tax;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,9 @@ public sealed record DocumentLineDto(
 
 /// <summary>A document-level discount: <c>Kind</c> Amount (AED) or Percent (of the sub total); omit or use None for no discount.</summary>
 public sealed record DocumentDiscountRequest(DiscountKind Kind, decimal Value);
+
+/// <summary>A document's currency, its rate (AED per unit) and its totals in AED, which reports and the VAT return use.</summary>
+public sealed record DocumentCurrencyDto(string Code, decimal ExchangeRate, decimal SubTotalAed, decimal VatTotalAed, decimal TotalAed);
 
 /// <summary>The discount as entered, and <c>Amount</c>, its value in money. The sub total before discount is <c>SubTotal + Amount</c>.</summary>
 public sealed record DocumentDiscountDto(DiscountKind Kind, decimal Value, decimal Amount);
@@ -68,6 +72,23 @@ public static class DocumentLines
         new(l.Id, l.LineNo, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Discount, l.Net, l.Vat, l.Total);
 
     public static DocumentDiscountDto DiscountDto(this IDiscounted d) => new(d.DiscountKind, d.DiscountValue, d.Discount);
+
+    public static DocumentCurrencyDto CurrencyDto(this ICurrencyDocument d) => new(d.Currency, d.ExchangeRate, d.SubTotalAed, d.VatTotalAed, d.TotalAed);
+
+    /// <summary>Sets the document's currency and rate and works out its AED amounts (call after the lines and totals are built).</summary>
+    public static void ApplyCurrency<TLine>(this ICurrencyDocument document, DocumentCurrency currency, IReadOnlyList<TLine> lines)
+        where TLine : DocumentLineBase
+    {
+        document.Currency = currency.Code;
+        document.ExchangeRate = currency.Rate;
+        var aed = CurrencyConverter.ToAed(lines.Select(l => new LineAmounts(l.Net, l.VatRate, l.Vat, l.Total)).ToList(), currency.Rate);
+        for (var i = 0; i < lines.Count; i++)
+        {
+            (lines[i].NetAed, lines[i].VatAed) = (aed.Lines[i].Net, aed.Lines[i].Vat);
+        }
+
+        (document.SubTotalAed, document.VatTotalAed, document.TotalAed) = (aed.SubTotal, aed.VatTotal, aed.Total);
+    }
 
     public static DocumentDiscount ToDiscount(this DocumentDiscountRequest? r) =>
         r is null ? DocumentDiscount.None : new DocumentDiscount(r.Kind, r.Value);

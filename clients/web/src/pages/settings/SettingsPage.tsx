@@ -1,5 +1,5 @@
-import { DeleteOutlined, UploadOutlined } from '@ant-design/icons';
-import { Alert, App, Button, Card, Col, Form, Image, Input, InputNumber, Row, Select, Skeleton, Space, Switch, Table, Tabs, Upload } from 'antd';
+import { DeleteOutlined, EditOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Card, Col, Form, Image, Input, InputNumber, Modal, Popconfirm, Row, Select, Skeleton, Space, Switch, Table, Tabs, Tag, Upload } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ export function SettingsPage() {
           items={[
             { key: 'company', label: t('settings.company'), children: <CompanySettings /> },
             { key: 'numbering', label: t('settings.numbering'), children: <NumberingSettings /> },
+            { key: 'currencies', label: t('settings.currencies'), children: <CurrencySettings /> },
           ]}
         />
       </Card>
@@ -219,6 +220,102 @@ function NumberingSettings() {
       <Button type="primary" style={{ marginTop: 16 }} onClick={save} disabled={rows.some((r) => validatePattern(r.pattern, r.reset).length > 0)}>
         {t('common.save')}
       </Button>
+    </>
+  );
+}
+
+/** Foreign currencies and their AED rates; documents copy the rate when created. */
+function CurrencySettings() {
+  const { t } = useTranslation();
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  const [form] = Form.useForm<{ code: string; name: string; rateToAed: number; isActive: boolean }>();
+  const [editing, setEditing] = useState<Schemas['CurrencyDto'] | 'new' | null>(null);
+  const { data, refetch } = $api.useQuery('get', '/api/settings/currencies');
+  if (!data) return <Skeleton active />;
+
+  const open = (c: Schemas['CurrencyDto'] | 'new') => {
+    setEditing(c);
+    form.setFieldsValue(c === 'new' ? { code: '', name: '', rateToAed: undefined, isActive: true } : c);
+  };
+  const reload = async () => {
+    await refetch();
+    await queryClient.invalidateQueries({ queryKey: ['get', '/api/settings/currencies'] });
+  };
+  const save = async () => {
+    const v = await form.validateFields().catch(() => null);
+    if (!v) return;
+    const { error } = await fetchClient.PUT('/api/settings/currencies/{code}', {
+      params: { path: { code: v.code.trim().toUpperCase() } },
+      body: { name: v.name, rateToAed: Number(v.rateToAed), isActive: v.isActive },
+    });
+    if (error) return void message.error(applyProblem(error, form));
+    message.success(t('common.saved'));
+    setEditing(null);
+    await reload();
+  };
+  const remove = async (code: string) => {
+    const { error } = await fetchClient.DELETE('/api/settings/currencies/{code}', { params: { path: { code } } });
+    if (error) return void message.error(applyProblem(error));
+    await reload();
+  };
+
+  return (
+    <>
+      <Alert type="info" showIcon title={t('settings.currencyHelp')} style={{ marginBottom: 16 }} />
+      <Table
+        rowKey="code"
+        pagination={false}
+        dataSource={data}
+        locale={{ emptyText: t('common.noData') }}
+        columns={[
+          { title: t('settings.currencyCode'), dataIndex: 'code', render: (v: string) => <Ltr>{v}</Ltr> },
+          { title: t('settings.currencyName'), dataIndex: 'name' },
+          { title: t('settings.rateToAed'), dataIndex: 'rateToAed', className: 'num', render: (v: number) => <Ltr>{v}</Ltr> },
+          { title: t('settings.active'), dataIndex: 'isActive', render: (v: boolean) => (v ? <Tag color="green">{t('common.yes')}</Tag> : <Tag>{t('common.no')}</Tag>) },
+          {
+            key: 'actions',
+            width: 100,
+            render: (_: unknown, c) => (
+              <Space>
+                <Button type="text" icon={<EditOutlined />} onClick={() => open(c)} aria-label={t('common.edit')} data-testid={`currency-edit-${c.code}`} />
+                <Popconfirm title={t('settings.deleteCurrency')} onConfirm={() => remove(c.code)} okText={t('common.yes')} cancelText={t('common.no')}>
+                  <Button type="text" danger icon={<DeleteOutlined />} aria-label={t('common.delete')} />
+                </Popconfirm>
+              </Space>
+            ),
+          },
+        ]}
+      />
+      <Button type="primary" icon={<PlusOutlined />} style={{ marginTop: 16 }} onClick={() => open('new')} data-testid="currency-add">
+        {t('settings.addCurrency')}
+      </Button>
+      <Modal
+        open={editing !== null}
+        title={editing === 'new' ? t('settings.addCurrency') : t('settings.editCurrency')}
+        onOk={save}
+        onCancel={() => setEditing(null)}
+        okText={t('common.save')}
+        cancelText={t('common.cancel')}
+        okButtonProps={{ 'data-testid': 'currency-save' } as never}
+        destroyOnHidden
+        forceRender
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="code" label={t('settings.currencyCode')} rules={[{ required: true, message: t('common.required') }, { pattern: /^[A-Za-z]{3}$/, message: 'USD, EUR, SAR…' }]}>
+            <Input maxLength={3} dir="ltr" disabled={editing !== 'new'} style={{ textTransform: 'uppercase' }} data-testid="currency-code" />
+          </Form.Item>
+          <Form.Item name="name" label={t('settings.currencyName')} rules={[{ required: true, whitespace: true, message: t('common.required') }]}>
+            <Input maxLength={100} data-testid="currency-name" />
+          </Form.Item>
+          <Form.Item name="rateToAed" label={t('settings.rateToAed')} rules={[{ required: true, message: t('common.required') }]}>
+            <InputNumber min={0.000001} max={100000} precision={6} stringMode={false} style={{ width: '100%' }} data-testid="currency-rate" />
+          </Form.Item>
+          <Form.Item name="isActive" label={t('settings.active')} valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 }

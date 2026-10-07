@@ -55,6 +55,9 @@ const en = {
     stockWarning: 'Stock for "{{name}}" is now {{qty}}.', settingsIncomplete: 'Complete the company details in Settings first.',
     discount: 'Discount', discountNone: 'No discount', discountAmount: 'Amount (AED)', discountPercent: 'Percent (%)',
     totalExclVat: 'Total excl. VAT', discountShare: 'after {{amount}} discount',
+    currency: 'Currency', exchangeRate: 'Exchange rate (AED per 1 {{currency}})', unitPriceIn: 'Unit price ({{currency}})',
+    amountIn: 'Amount ({{currency}})', totalIn: 'Total Amount ({{currency}})', vatAed: 'VAT (AED)', totalAed: 'Total Amount (AED)',
+    rateInfo: '1 {{currency}} = {{rate}} AED',
   },
   quotation: {
     title: 'Quotations', new: 'New quotation', edit: 'Edit quotation', convert: 'Convert to invoice',
@@ -87,6 +90,7 @@ const en = {
     expenses: 'Expenses', totalCosts: 'Total purchases & costs', netProfit: 'Net profit', month: 'Month', box: 'Box',
     boxLabel: 'Description', outputVat: 'Output VAT', inputVat: 'Input VAT (recoverable)', payable: 'Net VAT payable',
     refundable: 'Net VAT refundable', emirate: 'Emirate', Invoice: 'Invoice', CreditNote: 'Credit note',
+    inAed: 'All amounts are in AED. Documents in other currencies count at their own exchange rate.',
   },
   settings: {
     title: 'Settings', company: 'Company', companyName: 'Company name', emirate: 'Emirate', website: 'Website', vatRate: 'VAT rate (%)',
@@ -96,6 +100,10 @@ const en = {
     patternHelp: 'Tokens: {YYYY} {YY} {MM} {MON} {DD} {SEQ} {SEQ:4}', Never: 'Never', Yearly: 'Every year', Monthly: 'Every month',
     Invoice: 'Tax invoice', Quotation: 'Quotation', CreditNote: 'Credit note', Purchase: 'Purchase', incomplete: 'Company details are incomplete — documents cannot be issued yet.',
     AbuDhabi: 'Abu Dhabi', Dubai: 'Dubai', Sharjah: 'Sharjah', Ajman: 'Ajman', UmmAlQuwain: 'Umm Al Quwain', RasAlKhaimah: 'Ras Al Khaimah', Fujairah: 'Fujairah',
+    currencies: 'Currencies', currencyCode: 'Code (ISO)', currencyName: 'Name', rateToAed: 'AED per 1 unit', active: 'Active',
+    addCurrency: 'Add currency', editCurrency: 'Edit currency',
+    currencyHelp: 'AED is the base currency. A document copies the current rate when it is created, and the rate can be changed on the document. Changing a rate here never alters existing documents.',
+    deleteCurrency: 'Delete this currency? A currency used on documents is deactivated instead.',
   },
   users: {
     title: 'Users', new: 'New user', edit: 'Edit user', displayName: 'Display name', role: 'Role', resetPassword: 'Reset password',

@@ -27,6 +27,10 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
 
     public static string Date(DateOnly value) => value.ToString("d-MMM-yy", Invariant);
 
+    public static string Rate(decimal value) => value.ToString("0.######", Invariant);
+
+    private string CurrencyCode => doc.Currency?.Code ?? Domain.Documents.CurrencyConverter.Base;
+
     public DocumentMetadata GetMetadata() => new()
     {
         Title = $"{doc.Title} {doc.Number}",
@@ -170,6 +174,11 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
 
                 t.Cell().PaddingBottom(1).AlignRight().PaddingRight(8).Text("Date:").Bold();
                 t.Cell().PaddingBottom(1).AlignRight().Text(Date(doc.Date)).Bold();
+                if (doc.Currency is { } currency)
+                {
+                    t.Cell().PaddingBottom(1).AlignRight().PaddingRight(8).Text("Exchange Rate:").Bold();
+                    t.Cell().PaddingBottom(1).AlignRight().Text($"1 {currency.Code} = {Rate(currency.Rate)} AED");
+                }
             });
         });
     }
@@ -184,7 +193,7 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
             ("Sl.No", 9.7f),
             ("Description of Service", HasDiscount ? 37.6f : 47.6f),
             ("Qty", 4.2f),
-            ("Unit Price (AED)", 12.5f),
+            ($"Unit Price ({CurrencyCode})", 12.5f),
         };
         if (HasDiscount)
         {
@@ -192,7 +201,7 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
         }
 
         columns.Add(("Vat", 12.0f));
-        columns.Add(("Amount (AED)", 14.0f));
+        columns.Add(($"Amount ({CurrencyCode})", 14.0f));
 
         container.Border(Outer).Table(t =>
         {
@@ -249,6 +258,12 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
         }
 
         rows.Add((doc.VatLabel, doc.VatTotal));
+        var aedRows = new List<(string Label, decimal Value)>();
+        if (doc.Currency is { } currency)
+        {
+            aedRows.Add(($"{doc.VatLabel} (AED)", currency.VatTotalAed));
+            aedRows.Add(("Total Amount (AED)", currency.TotalAed));
+        }
 
         container.Row(row =>
         {
@@ -273,7 +288,11 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
                     c.Item().AlignRight().Text(label).Bold();
                 }
 
-                c.Item().AlignRight().Text("Total Amount").Bold();
+                c.Item().AlignRight().Text(doc.Currency is null ? "Total Amount" : $"Total Amount ({CurrencyCode})").Bold();
+                foreach (var (label, _) in aedRows)
+                {
+                    c.Item().AlignRight().Text(label);
+                }
             });
             row.RelativeItem(26.6f).PaddingTop(8).PaddingRight(4).Column(c =>
             {
@@ -283,6 +302,10 @@ public sealed class SalesDocumentPdf(PrintDocument doc) : IDocument
                 }
 
                 c.Item().AlignRight().Text(Money(doc.Total)).Bold();
+                foreach (var (_, value) in aedRows)
+                {
+                    c.Item().AlignRight().Text(Money(value));
+                }
             });
         });
     }

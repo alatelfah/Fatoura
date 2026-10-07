@@ -2,7 +2,7 @@ import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Flex, Form, Input, InputNumber, Select, Typography, type FormInstance } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { previewDocument, TAX_CATEGORIES, type DiscountKind, type TaxCategory } from '@fatoura/shared';
+import { BASE_CURRENCY, previewDocument, TAX_CATEGORIES, toAed, type DiscountKind, type TaxCategory } from '@fatoura/shared';
 import { $api, type Schemas } from '../api/client';
 import { Money } from './Ltr';
 
@@ -38,7 +38,10 @@ export function DocumentLinesEditor({ form, vatRate, purchase, discount }: Props
   const items = $api.useQuery('get', '/api/items', { params: { query: { search: search || undefined, pageSize: 100 } } });
   const lines = (Form.useWatch('lines', form) as LineFormValue[] | undefined) ?? [];
   const discountValue = Form.useWatch('discount', form) as DiscountFormValue | undefined;
+  const currency = (Form.useWatch('currency', form) as string | undefined) ?? BASE_CURRENCY;
+  const exchangeRate = Form.useWatch('exchangeRate', form) as number | null | undefined;
   const totals = previewLines(lines, vatRate, discount ? discountValue : undefined);
+  const aed = currency !== BASE_CURRENCY && exchangeRate ? toAed(totals, exchangeRate) : null;
   const byId = new Map((items.data?.items ?? []).map((i) => [i.id, i] as const));
 
   const pickItem = (index: number, item: Schemas['ItemDto'] | undefined) => {
@@ -59,10 +62,10 @@ export function DocumentLinesEditor({ form, vatRate, purchase, discount }: Props
         <span>#</span>
         <span>{t('doc.description')}</span>
         <span>{t('doc.qty')}</span>
-        <span>{purchase ? t('purchase.unitCost') : t('doc.unitPrice')}</span>
+        <span>{purchase ? t('purchase.unitCost') : t('doc.unitPriceIn', { currency })}</span>
         <span>{t('item.taxCategory')}</span>
         <span className="num">{t('doc.vat')}</span>
-        <span className="num">{t('doc.amount')}</span>
+        <span className="num">{t('doc.amountIn', { currency })}</span>
         <span />
       </div>
       <Form.List
@@ -182,7 +185,13 @@ export function DocumentLinesEditor({ form, vatRate, purchase, discount }: Props
           </>
         )}
         <Totals label={`${t('doc.vatTotal')} ${Number((vatRate * 100).toFixed(2))}%`} value={totals.vatTotal.toFixed(2)} />
-        <Totals label={t('doc.total')} value={totals.total.toFixed(2)} strong testId="grand-total" />
+        <Totals label={currency === BASE_CURRENCY ? t('doc.total') : t('doc.totalIn', { currency })} value={totals.total.toFixed(2)} strong testId="grand-total" />
+        {aed && (
+          <>
+            <Totals label={t('doc.vatAed')} value={aed.vatTotal.toFixed(2)} testId="vat-aed" />
+            <Totals label={t('doc.totalAed')} value={aed.total.toFixed(2)} testId="total-aed" />
+          </>
+        )}
       </Flex>
     </div>
   );

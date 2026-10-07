@@ -30,6 +30,35 @@ public abstract class DocumentLineBase
     public decimal Vat { get; set; }
 
     public decimal Total { get; set; }
+
+    /// <summary>This line's share of the document's AED sub total (equal to <see cref="Net"/> for AED documents).</summary>
+    public decimal NetAed { get; set; }
+
+    /// <summary>This line's share of the document's AED VAT (equal to <see cref="Vat"/> for AED documents).</summary>
+    public decimal VatAed { get; set; }
+}
+
+/// <summary>
+/// Amounts are in <see cref="Currency"/>; the *Aed amounts are their equivalents at <see cref="ExchangeRate"/>
+/// (AED per unit, 1 for AED) and are what reports, the dashboard and the VAT return use.
+/// </summary>
+public interface ICurrencyDocument
+{
+    string Currency { get; set; }
+
+    decimal ExchangeRate { get; set; }
+
+    decimal SubTotal { get; set; }
+
+    decimal VatTotal { get; set; }
+
+    decimal Total { get; set; }
+
+    decimal SubTotalAed { get; set; }
+
+    decimal VatTotalAed { get; set; }
+
+    decimal TotalAed { get; set; }
 }
 
 public interface IDocumentTerms
@@ -62,7 +91,7 @@ public interface IDiscounted
     decimal Total { get; set; }
 }
 
-public sealed class Quotation : IAudited, IDocumentTerms, IDiscounted
+public sealed class Quotation : IAudited, IDocumentTerms, IDiscounted, ICurrencyDocument
 {
     public int Id { get; set; }
 
@@ -102,6 +131,16 @@ public sealed class Quotation : IAudited, IDocumentTerms, IDiscounted
 
     public decimal Total { get; set; }
 
+    public string Currency { get; set; } = CurrencyConverter.Base;
+
+    public decimal ExchangeRate { get; set; } = 1m;
+
+    public decimal SubTotalAed { get; set; }
+
+    public decimal VatTotalAed { get; set; }
+
+    public decimal TotalAed { get; set; }
+
     public Guid CreatedById { get; set; }
 
     public AppUser? CreatedBy { get; set; }
@@ -118,7 +157,7 @@ public sealed class QuotationLine : DocumentLineBase
     public int QuotationId { get; set; }
 }
 
-public sealed class Invoice : IAudited, IDocumentTerms, IDiscounted
+public sealed class Invoice : IAudited, IDocumentTerms, IDiscounted, ICurrencyDocument
 {
     public int Id { get; set; }
 
@@ -166,6 +205,16 @@ public sealed class Invoice : IAudited, IDocumentTerms, IDiscounted
 
     public decimal Total { get; set; }
 
+    public string Currency { get; set; } = CurrencyConverter.Base;
+
+    public decimal ExchangeRate { get; set; } = 1m;
+
+    public decimal SubTotalAed { get; set; }
+
+    public decimal VatTotalAed { get; set; }
+
+    public decimal TotalAed { get; set; }
+
     public Guid CreatedById { get; set; }
 
     public AppUser? CreatedBy { get; set; }
@@ -210,7 +259,7 @@ public sealed class Payment : IAudited
     public DateTimeOffset CreatedAt { get; set; }
 }
 
-public sealed class CreditNote : IAudited
+public sealed class CreditNote : IAudited, ICurrencyDocument
 {
     public int Id { get; set; }
 
@@ -239,6 +288,16 @@ public sealed class CreditNote : IAudited
 
     public decimal Total { get; set; }
 
+    public string Currency { get; set; } = CurrencyConverter.Base;
+
+    public decimal ExchangeRate { get; set; } = 1m;
+
+    public decimal SubTotalAed { get; set; }
+
+    public decimal VatTotalAed { get; set; }
+
+    public decimal TotalAed { get; set; }
+
     public Guid CreatedById { get; set; }
 
     public AppUser? CreatedBy { get; set; }
@@ -257,7 +316,7 @@ public sealed class CreditNoteLine : DocumentLineBase
     public InvoiceLine? InvoiceLine { get; set; }
 }
 
-public sealed class PurchaseInvoice : IAudited
+public sealed class PurchaseInvoice : IAudited, ICurrencyDocument
 {
     public int Id { get; set; }
 
@@ -280,6 +339,16 @@ public sealed class PurchaseInvoice : IAudited
     public decimal VatTotal { get; set; }
 
     public decimal Total { get; set; }
+
+    public string Currency { get; set; } = CurrencyConverter.Base;
+
+    public decimal ExchangeRate { get; set; } = 1m;
+
+    public decimal SubTotalAed { get; set; }
+
+    public decimal VatTotalAed { get; set; }
+
+    public decimal TotalAed { get; set; }
 
     public byte[]? Attachment { get; set; }
 

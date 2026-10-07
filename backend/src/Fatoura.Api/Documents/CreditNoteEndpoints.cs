@@ -46,6 +46,7 @@ public sealed record CreditNoteDto(
     bool ReturnToStock,
     PartyDto Client,
     CompanyDto Company,
+    DocumentCurrencyDto Currency,
     decimal Discount,
     decimal SubTotal,
     decimal VatTotal,
@@ -56,7 +57,7 @@ public sealed record CreditNoteDto(
     List<CreditNoteLineDto> Lines);
 
 public sealed record CreditNoteSummaryListDto(
-    int Id, string Number, DateOnly Date, int InvoiceId, string InvoiceNumber, string ClientName, decimal Total, string CreatedByName);
+    int Id, string Number, DateOnly Date, int InvoiceId, string InvoiceNumber, string ClientName, string Currency, decimal Total, string CreatedByName);
 
 public static class CreditNoteEndpoints
 {
@@ -76,7 +77,7 @@ public static class CreditNoteEndpoints
             .SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Credit note");
         return new CreditNoteDto(
             c.Id, c.Number, c.Date, c.InvoiceId, c.Invoice!.Number, c.Invoice.Date, c.Reason, c.ReturnToStock,
-            c.ClientSnapshot.ToDto(), c.CompanySnapshot.ToDto(), c.Discount, c.SubTotal, c.VatTotal, c.Total, c.CreatedById,
+            c.ClientSnapshot.ToDto(), c.CompanySnapshot.ToDto(), c.CurrencyDto(), c.Discount, c.SubTotal, c.VatTotal, c.Total, c.CreatedById,
             c.CreatedBy?.DisplayName ?? string.Empty, c.CreatedAt,
             c.Lines.OrderBy(l => l.LineNo).Select(l => new CreditNoteLineDto(
                 l.Id, l.LineNo, l.InvoiceLineId, l.ItemId, l.Description, l.Quantity, l.UnitPrice, l.TaxCategory, l.VatRate, l.Discount, l.Net, l.Vat, l.Total)).ToList());
@@ -108,7 +109,7 @@ public static class CreditNoteEndpoints
         }
 
         var result = await q.OrderByDescending(c => c.Date).ThenByDescending(c => c.Id)
-            .Select(c => new CreditNoteSummaryListDto(c.Id, c.Number, c.Date, c.InvoiceId, c.Invoice!.Number, c.ClientSnapshot.Name, c.Total, c.CreatedBy!.DisplayName))
+            .Select(c => new CreditNoteSummaryListDto(c.Id, c.Number, c.Date, c.InvoiceId, c.Invoice!.Number, c.ClientSnapshot.Name, c.Currency, c.Total, c.CreatedBy!.DisplayName))
             .ToPagedAsync(page, pageSize, ct);
         return TypedResults.Ok(result);
     }
@@ -228,6 +229,9 @@ public static class CreditNoteEndpoints
             note.SubTotal = note.Lines.Sum(l => l.Net);
             note.VatTotal = note.Lines.Sum(l => l.Vat);
             note.Total = note.SubTotal + note.VatTotal;
+
+            // A credit note adjusts the original supply, so it uses the invoice's currency and rate.
+            note.ApplyCurrency(new DocumentCurrency(invoice.Currency, invoice.ExchangeRate), note.Lines);
             db.CreditNotes.Add(note);
             await db.SaveChangesAsync(ct);
 

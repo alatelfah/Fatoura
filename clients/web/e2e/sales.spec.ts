@@ -97,6 +97,42 @@ test('invoice with a 10% discount taxes the discounted value', async ({ page, re
   await expect(page.getByTestId('invoice-balance')).toHaveText('0.00');
 });
 
+test('admin sets up USD and issues a USD invoice that states VAT in AED', async ({ page, request }) => {
+  const token = await apiToken(request);
+  const clientName = `Dollar Client ${run}`;
+  await api(request, token, 'POST', '/api/clients', { name: clientName });
+
+  await login(page);
+  await page.goto('/settings');
+  await page.getByRole('tab', { name: 'Currencies' }).click();
+  await page.getByTestId('currency-add').click();
+  await page.getByTestId('currency-code').fill('USD');
+  await page.getByTestId('currency-name').fill('US Dollar');
+  await page.getByTestId('currency-rate').fill('3.6725');
+  await page.getByTestId('currency-save').click();
+  await expect(page.getByRole('cell', { name: 'US Dollar' })).toBeVisible();
+
+  await page.goto('/invoices/new');
+  await pick(page, 'clients-select', clientName);
+  await pick(page, 'document-currency', 'USD');
+  await expect(page.getByTestId('document-rate')).toHaveValue('3.672500');
+  await page.getByTestId('line-0-description').fill('Consulting');
+  await page.getByTestId('line-0-qty').fill('10');
+  await page.getByTestId('line-0-price').fill('99.99');
+  await page.getByTestId('line-0-price').blur();
+
+  // 999.90 + 50.00 VAT in USD; VAT in AED = round2(50.00 × 3.6725).
+  await expect(page.getByTestId('grand-total')).toHaveText('1,049.90');
+  await expect(page.getByTestId('vat-aed')).toHaveText('183.63');
+  await expect(page.getByTestId('total-aed')).toHaveText('3,855.76');
+  await page.getByTestId('document-submit').click();
+
+  await page.waitForURL(/\/invoices\/\d+$/);
+  await expect(page.getByTestId('doc-total')).toHaveText('1,049.90');
+  await expect(page.getByTestId('doc-vat-aed')).toHaveText('183.63');
+  await expect(page.getByTestId('invoice-balance')).toHaveText('0.00 USD');
+});
+
 test('cashier issues a paid invoice from the dashboard but cannot void it', async ({ page, request }) => {
   const token = await apiToken(request);
   const clientName = `Walk-in ${run}`;

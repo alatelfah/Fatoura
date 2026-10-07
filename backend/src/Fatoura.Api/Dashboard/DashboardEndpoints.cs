@@ -12,7 +12,8 @@ namespace Fatoura.Api.Dashboard;
 
 public sealed record MonthlyTotals(string Month, decimal Sales, decimal Purchases);
 
-public sealed record RecentInvoiceDto(int Id, string Number, DateOnly Date, string ClientName, decimal Total, decimal Balance, InvoiceStatus Status);
+/// <summary>Total and balance are in the invoice's currency.</summary>
+public sealed record RecentInvoiceDto(int Id, string Number, DateOnly Date, string ClientName, string Currency, decimal Total, decimal Balance, InvoiceStatus Status);
 
 public sealed record AdminDashboardDto(
     ReportPeriod Period,
@@ -29,6 +30,7 @@ public sealed record AdminDashboardDto(
     List<MonthlyTotals> Monthly,
     List<RecentInvoiceDto> RecentInvoices);
 
+/// <summary>Shift totals are in AED.</summary>
 public sealed record CashierDashboardDto(
     DateOnly Today, int ShiftInvoiceCount, decimal ShiftSalesNet, decimal ShiftSalesTotal, List<RecentInvoiceDto> RecentInvoices);
 
@@ -51,10 +53,17 @@ public static class DashboardEndpoints
         var pl = await reports.ProfitLossAsync(period, ct);
         var vat = await reports.VatAsync(period, ct);
 
-        var open = await db.Invoices.AsNoTracking().Where(i => i.Status == InvoiceStatus.Issued)
-            .Select(i => i.Total - (i.CreditNotes.Sum(c => (decimal?)c.Total) ?? 0) - (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0))
-            .Where(balance => balance > 0)
-            .ToListAsync(ct);
+        // Balances are in each invoice's currency; the KPI converts them to AED at the invoice's rate.
+        var open = (await db.Invoices.AsNoTracking().Where(i => i.Status == InvoiceStatus.Issued)
+            .Select(i => new
+            {
+                Balance = i.Total - (i.CreditNotes.Sum(c => (decimal?)c.Total) ?? 0) - (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0),
+                i.ExchangeRate,
+            })
+            .Where(x => x.Balance > 0)
+            .ToListAsync(ct))
+            .Select(x => Domain.Documents.DocumentCalculator.RoundMoney(x.Balance * x.ExchangeRate))
+            .ToList();
         var openQuotations = await db.Quotations.AsNoTracking().CountAsync(q =>
             (q.Status == QuotationStatus.Draft || q.Status == QuotationStatus.Sent || q.Status == QuotationStatus.Accepted) && q.ValidUntil >= today, ct);
 
@@ -80,7 +89,7 @@ public static class DashboardEndpoints
         var today = clock.Today;
         var shift = await db.Invoices.AsNoTracking()
             .Where(i => i.CreatedById == me && i.Date == today && i.Status == InvoiceStatus.Issued)
-            .Select(i => new { i.SubTotal, i.Total }).ToListAsync(ct);
+            .Select(i => new { SubTotal = i.SubTotalAed, Total = i.TotalAed }).ToListAsync(ct);
         var recent = await Recent(db.Invoices.AsNoTracking().Where(i => i.CreatedById == me), ct);
         return TypedResults.Ok(new CashierDashboardDto(today, shift.Count, shift.Sum(s => s.SubTotal), shift.Sum(s => s.Total), recent));
     }
@@ -88,7 +97,7 @@ public static class DashboardEndpoints
     private static Task<List<RecentInvoiceDto>> Recent(IQueryable<Invoice> q, CancellationToken ct) =>
         q.OrderByDescending(i => i.CreatedAt).Take(10)
             .Select(i => new RecentInvoiceDto(
-                i.Id, i.Number, i.Date, i.ClientSnapshot.Name, i.Total,
+                i.Id, i.Number, i.Date, i.ClientSnapshot.Name, i.Currency, i.Total,
                 i.Status == InvoiceStatus.Void ? 0 : i.Total - (i.CreditNotes.Sum(c => (decimal?)c.Total) ?? 0) - (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0),
                 i.Status))
             .ToListAsync(ct);

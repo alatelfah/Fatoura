@@ -10,9 +10,9 @@ public enum SalesDocumentKind
     CreditNote = 1,
 }
 
-/// <summary>One sales document; credit notes carry negative amounts so rows sum to net sales.</summary>
+/// <summary>One sales document, in AED whatever its <c>Currency</c>; credit notes carry negative amounts so rows sum to net sales.</summary>
 public sealed record SalesReportRow(
-    SalesDocumentKind Kind, int Id, string Number, DateOnly Date, string ClientName, string CashierName, decimal Net, decimal Vat, decimal Total);
+    SalesDocumentKind Kind, int Id, string Number, DateOnly Date, string ClientName, string CashierName, string Currency, decimal Net, decimal Vat, decimal Total);
 
 public sealed record SalesByCashier(Guid CashierId, string CashierName, int InvoiceCount, decimal Net, decimal Vat, decimal Total);
 
@@ -31,7 +31,9 @@ public sealed record SalesSummary(
 
 public sealed record SalesReportDto(ReportPeriod Period, SalesSummary Summary, List<SalesByCashier> ByCashier, List<SalesReportRow> Rows);
 
-public sealed record PurchaseReportRow(int Id, string Number, string SupplierInvoiceNo, DateOnly Date, string SupplierName, decimal Net, decimal Vat, decimal Total);
+/// <summary>One purchase, in AED whatever its <c>Currency</c>.</summary>
+public sealed record PurchaseReportRow(
+    int Id, string Number, string SupplierInvoiceNo, DateOnly Date, string SupplierName, string Currency, decimal Net, decimal Vat, decimal Total);
 
 public sealed record PurchasesBySupplier(int SupplierId, string SupplierName, int Count, decimal Net, decimal Vat, decimal Total);
 

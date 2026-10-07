@@ -84,6 +84,7 @@ function SalesReport() {
               { title: t('doc.date'), dataIndex: 'date', render: formatDate },
               { title: t('doc.client'), dataIndex: 'clientName' },
               { title: t('reports.cashier'), dataIndex: 'cashierName' },
+              { title: t('doc.currency'), dataIndex: 'currency', width: 90 },
               { title: t('reports.net'), dataIndex: 'net', className: 'num', render: (v: number) => <Money value={v} /> },
               { title: t('reports.vatAmount'), dataIndex: 'vat', className: 'num', render: (v: number) => <Money value={v} /> },
               { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
@@ -129,6 +130,7 @@ function PurchasesReport() {
             { title: t('purchase.supplierInvoiceNo'), dataIndex: 'supplierInvoiceNo', render: (v: string) => <Ltr>{v}</Ltr> },
             { title: t('doc.date'), dataIndex: 'date', render: formatDate },
             { title: t('doc.supplier'), dataIndex: 'supplierName' },
+            { title: t('doc.currency'), dataIndex: 'currency', width: 90 },
             { title: t('reports.net'), dataIndex: 'net', className: 'num', render: (v: number) => <Money value={v} /> },
             { title: t('reports.vatAmount'), dataIndex: 'vat', className: 'num', render: (v: number) => <Money value={v} /> },
             { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
@@ -225,7 +227,7 @@ export function ReportsPage() {
   ];
   return (
     <>
-      <PageHeader title={t('reports.title')} />
+      <PageHeader title={t('reports.title')} subtitle={t('reports.inAed')} />
       <Card>
         <Tabs items={items} destroyOnHidden />
       </Card>

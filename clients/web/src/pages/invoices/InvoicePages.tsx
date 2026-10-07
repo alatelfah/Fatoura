@@ -51,9 +51,9 @@ export function InvoicesPage() {
           { title: t('doc.number'), dataIndex: 'number', render: (v: string) => <Ltr>{v}</Ltr> },
           { title: t('doc.date'), dataIndex: 'date', render: formatDate },
           { title: t('doc.client'), dataIndex: 'clientName' },
-          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
-          { title: t('doc.paid'), dataIndex: 'paidTotal', className: 'num', render: (v: number) => <Money value={v} /> },
-          { title: t('doc.balance'), dataIndex: 'balance', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
+          { title: t('doc.paid'), dataIndex: 'paidTotal', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
+          { title: t('doc.balance'), dataIndex: 'balance', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
           { title: t('common.status'), dataIndex: 'status', render: (s: Schemas['InvoiceStatus'], r) => <InvoiceStatusTag status={s} balance={r.balance} /> },
           { title: t('doc.createdBy'), dataIndex: 'createdByName' },
         ]}
@@ -119,9 +119,9 @@ export function InvoiceViewPage() {
         info={[
           { label: t('doc.createdBy'), value: inv.createdByName },
           ...(inv.quotationId ? [{ label: t('invoice.quotationRef'), value: <Link to={`/quotations/${inv.quotationId}`}><Ltr>{inv.quotationNumber}</Ltr></Link> }] : []),
-          { label: t('doc.paid'), value: <Money value={inv.paidTotal} /> },
-          ...(inv.creditedTotal > 0 ? [{ label: t('doc.credited'), value: <Money value={inv.creditedTotal} /> }] : []),
-          { label: t('doc.balance'), value: <span data-testid="invoice-balance"><Money value={inv.balance} strong /></span> },
+          { label: t('doc.paid'), value: <Money value={inv.paidTotal} currency={inv.currency.code} /> },
+          ...(inv.creditedTotal > 0 ? [{ label: t('doc.credited'), value: <Money value={inv.creditedTotal} currency={inv.currency.code} /> }] : []),
+          { label: t('doc.balance'), value: <span data-testid="invoice-balance"><Money value={inv.balance} currency={inv.currency.code} strong /></span> },
         ]}
         lines={inv.lines}
         discount={inv.discount.amount}
@@ -129,6 +129,7 @@ export function InvoiceViewPage() {
         subTotal={inv.subTotal}
         vatTotal={inv.vatTotal}
         total={inv.total}
+        currency={inv.currency}
         terms={inv.terms}
       />
       <Card title={t('invoice.payments')} style={{ marginTop: 16 }} size="small">
@@ -142,7 +143,7 @@ export function InvoiceViewPage() {
             { title: t('doc.date'), dataIndex: 'date', render: formatDate },
             { title: t('invoice.method'), dataIndex: 'method', render: (m: string) => t(`invoice.${m}`) },
             { title: t('invoice.reference'), dataIndex: 'reference' },
-            { title: t('invoice.amount'), dataIndex: 'amount', className: 'num', render: (v: number) => <Money value={v} /> },
+            { title: t('invoice.amount'), dataIndex: 'amount', className: 'num', render: (v: number) => <Money value={v} currency={inv.currency.code} /> },
             ...(isAdmin
               ? [{ key: 'del', width: 50, render: (_: unknown, p: Schemas['PaymentDto']) => (
                   <Popconfirm title={t('common.delete') + '?'} onConfirm={() => removePayment(p.id)} okText={t('common.yes')} cancelText={t('common.no')}>
@@ -164,7 +165,7 @@ export function InvoiceViewPage() {
               { title: t('doc.number'), dataIndex: 'number', render: (v: string, c) => <Link to={`/credit-notes/${c.id}`}><Ltr>{v}</Ltr></Link> },
               { title: t('doc.date'), dataIndex: 'date', render: formatDate },
               { title: t('creditNote.reason'), dataIndex: 'reason' },
-              { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+              { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} currency={inv.currency.code} /> },
             ]}
           />
         </Card>
@@ -265,7 +266,7 @@ function CreditNoteModal({ open, invoice, onClose, onDone }: { open: boolean; in
         dataSource={invoice.lines}
         columns={[
           { title: t('doc.description'), dataIndex: 'description', ellipsis: true },
-          { title: t('doc.unitPrice'), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('doc.unitPriceIn', { currency: invoice.currency.code }), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
           { title: t('creditNote.remaining'), key: 'remaining', className: 'num', render: (_: unknown, l) => <Ltr>{formatQty(l.quantity - l.creditedQuantity)}</Ltr> },
           {
             title: t('creditNote.creditQty'),

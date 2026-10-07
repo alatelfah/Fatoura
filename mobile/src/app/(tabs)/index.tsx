@@ -20,7 +20,7 @@ function Recent({ invoices }: { invoices: Schemas['RecentInvoiceDto'][] }) {
           key={i.id}
           title={i.clientName}
           description={`${i.number} · ${formatDate(i.date)}`}
-          right={() => <View style={{ justifyContent: 'center' }}><Money value={i.total} /></View>}
+          right={() => <View style={{ justifyContent: 'center' }}><Money value={i.total} currency={i.currency} /></View>}
           onPress={() => router.push(`/invoice/${i.id}`)}
         />
       ))}

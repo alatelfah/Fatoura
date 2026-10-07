@@ -23,6 +23,7 @@ export default function CreditNoteScreen() {
           subTotal={c.subTotal}
           vatTotal={c.vatTotal}
           total={c.total}
+          currency={c.currency}
           extra={[[t('creditNote.againstInvoice'), <Ltr key="i">{c.invoiceNumber}</Ltr>], [t('creditNote.reason'), c.reason]]}
         />
         <Button mode="contained" icon="share-variant" onPress={() => sharePdf(`/api/credit-notes/${id}/pdf`, `CreditNote-${c.number.replace(/[^\w-]/g, '-')}.pdf`)}>{t('mobile.share')}</Button>

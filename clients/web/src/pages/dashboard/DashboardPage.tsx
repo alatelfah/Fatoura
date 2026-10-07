@@ -42,12 +42,12 @@ function RecentInvoices({ invoices }: { invoices: Schemas['RecentInvoiceDto'][] 
         { title: t('doc.number'), dataIndex: 'number', render: (n: string, r) => <Link to={`/invoices/${r.id}`}><Ltr>{n}</Ltr></Link> },
         { title: t('doc.date'), dataIndex: 'date', render: formatDate },
         { title: t('doc.client'), dataIndex: 'clientName' },
-        { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+        { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
         {
           title: t('doc.balance'),
           dataIndex: 'balance',
           className: 'num',
-          render: (v: number, r) => (r.status === 'Void' ? <Tag color="red">{t('invoice.Void')}</Tag> : <Money value={v} />),
+          render: (v: number, r) => (r.status === 'Void' ? <Tag color="red">{t('invoice.Void')}</Tag> : <Money value={v} currency={r.currency} />),
         },
       ]}
     />

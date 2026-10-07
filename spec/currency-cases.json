@@ -1,0 +1,69 @@
+{
+  "description": "AED equivalents of documents in other currencies. Lines are calculated as in calc-cases.json, then converted at exchangeRate (AED per unit). Consumed by backend/tests/Fatoura.UnitTests (lines and totals) and clients/shared (totals).",
+  "standardRate": "0.05",
+  "cases": [
+    {
+      "name": "USD at the pegged rate: totals round half away from zero",
+      "currency": "USD",
+      "exchangeRate": "3.6725",
+      "lines": [{ "qty": "10", "unitPrice": "99.99", "tax": "Standard" }],
+      "expected": {
+        "subTotal": "999.90",
+        "vatTotal": "50.00",
+        "total": "1049.90",
+        "aed": {
+          "lines": [{ "net": "3672.13", "vat": "183.63" }],
+          "subTotal": "3672.13",
+          "vatTotal": "183.63",
+          "total": "3855.76"
+        }
+      }
+    },
+    {
+      "name": "EUR with mixed tax categories: AED totals are spread over the lines to the fils",
+      "currency": "EUR",
+      "exchangeRate": "4.012345",
+      "lines": [
+        { "qty": "1", "unitPrice": "100.00", "tax": "Standard" },
+        { "qty": "1", "unitPrice": "50.00", "tax": "ZeroRated" }
+      ],
+      "expected": {
+        "subTotal": "150.00",
+        "vatTotal": "5.00",
+        "total": "155.00",
+        "aed": {
+          "lines": [
+            { "net": "401.23", "vat": "20.06" },
+            { "net": "200.62", "vat": "0.00" }
+          ],
+          "subTotal": "601.85",
+          "vatTotal": "20.06",
+          "total": "621.91"
+        }
+      }
+    },
+    {
+      "name": "AED documents are unchanged",
+      "currency": "AED",
+      "exchangeRate": "1",
+      "lines": [
+        { "qty": "20", "unitPrice": "2050.00", "tax": "Standard" },
+        { "qty": "20", "unitPrice": "250.00", "tax": "Standard" }
+      ],
+      "expected": {
+        "subTotal": "46000.00",
+        "vatTotal": "2300.00",
+        "total": "48300.00",
+        "aed": {
+          "lines": [
+            { "net": "41000.00", "vat": "2050.00" },
+            { "net": "5000.00", "vat": "250.00" }
+          ],
+          "subTotal": "46000.00",
+          "vatTotal": "2300.00",
+          "total": "48300.00"
+        }
+      }
+    }
+  ]
+}

@@ -14,6 +14,7 @@ public sealed record IssueInvoiceCommand(
     IReadOnlyList<DocumentLineRequest> Lines,
     TermsRequest? Terms,
     DocumentDiscountRequest? Discount = null,
+    DocumentCurrency? Currency = null,
     int? QuotationId = null,
     string QuotationNumber = "",
     PaymentRequest? Payment = null);
@@ -52,6 +53,7 @@ public sealed class InvoiceService(
         };
         invoice.ApplyTerms(cmd.Terms, settings);
         invoice.Build(cmd.Lines, cmd.Discount, settings.VatRate, invoice.Lines);
+        invoice.ApplyCurrency(cmd.Currency ?? DocumentCurrency.Aed, invoice.Lines);
         await SetUnitCostsAsync(invoice.Lines, ct);
 
         if (cmd.Payment is { } p)
@@ -76,6 +78,7 @@ public sealed class InvoiceService(
         DateOnly date,
         IReadOnlyList<DocumentLineRequest> lines,
         DocumentDiscountRequest? discount,
+        DocumentCurrency currency,
         TermsRequest? terms,
         CancellationToken ct)
     {
@@ -97,6 +100,7 @@ public sealed class InvoiceService(
         var oldLines = invoice.Lines.ToList();
         var newLines = new List<InvoiceLine>();
         invoice.Build(lines, discount, settings.VatRate, newLines);
+        invoice.ApplyCurrency(currency, newLines);
         await SetUnitCostsAsync(newLines, ct);
 
         var paid = invoice.Payments.Sum(p => p.Amount);

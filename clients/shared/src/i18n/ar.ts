@@ -57,6 +57,9 @@ const ar: Translations = {
     stockWarning: 'أصبح مخزون "{{name}}" {{qty}}.', settingsIncomplete: 'أكمل بيانات الشركة في الإعدادات أولًا.',
     discount: 'الخصم', discountNone: 'بدون خصم', discountAmount: 'مبلغ (درهم)', discountPercent: 'نسبة (%)',
     totalExclVat: 'الإجمالي قبل الضريبة', discountShare: 'بعد خصم {{amount}}',
+    currency: 'العملة', exchangeRate: 'سعر الصرف (درهم لكل 1 {{currency}})', unitPriceIn: 'سعر الوحدة ({{currency}})',
+    amountIn: 'المبلغ ({{currency}})', totalIn: 'المبلغ الإجمالي ({{currency}})', vatAed: 'الضريبة (درهم)', totalAed: 'المبلغ الإجمالي (درهم)',
+    rateInfo: '1 {{currency}} = {{rate}} درهم',
   },
   quotation: {
     title: 'عروض الأسعار', new: 'عرض سعر جديد', edit: 'تعديل عرض السعر', convert: 'تحويل إلى فاتورة',
@@ -89,6 +92,7 @@ const ar: Translations = {
     expenses: 'المصروفات', totalCosts: 'إجمالي المشتريات والتكاليف', netProfit: 'صافي الربح', month: 'الشهر', box: 'الخانة',
     boxLabel: 'البيان', outputVat: 'ضريبة المخرجات', inputVat: 'ضريبة المدخلات (القابلة للاسترداد)', payable: 'صافي الضريبة المستحقة',
     refundable: 'صافي الضريبة المستردة', emirate: 'الإمارة', Invoice: 'فاتورة', CreditNote: 'إشعار دائن',
+    inAed: 'جميع المبالغ بالدرهم. المستندات بعملات أخرى تُحتسب بسعر صرفها.',
   },
   settings: {
     title: 'الإعدادات', company: 'الشركة', companyName: 'اسم الشركة', emirate: 'الإمارة', website: 'الموقع الإلكتروني', vatRate: 'نسبة الضريبة (%)',
@@ -98,6 +102,10 @@ const ar: Translations = {
     patternHelp: 'الرموز: {YYYY} {YY} {MM} {MON} {DD} {SEQ} {SEQ:4}', Never: 'أبدًا', Yearly: 'كل سنة', Monthly: 'كل شهر',
     Invoice: 'فاتورة ضريبية', Quotation: 'عرض سعر', CreditNote: 'إشعار دائن', Purchase: 'مشتريات', incomplete: 'بيانات الشركة غير مكتملة — لا يمكن إصدار المستندات بعد.',
     AbuDhabi: 'أبوظبي', Dubai: 'دبي', Sharjah: 'الشارقة', Ajman: 'عجمان', UmmAlQuwain: 'أم القيوين', RasAlKhaimah: 'رأس الخيمة', Fujairah: 'الفجيرة',
+    currencies: 'العملات', currencyCode: 'الرمز (ISO)', currencyName: 'الاسم', rateToAed: 'درهم لكل وحدة', active: 'مفعّلة',
+    addCurrency: 'إضافة عملة', editCurrency: 'تعديل العملة',
+    currencyHelp: 'الدرهم هو العملة الأساسية. يأخذ المستند سعر الصرف الحالي عند إنشائه ويمكن تعديله في المستند. تغيير السعر هنا لا يغيّر المستندات السابقة.',
+    deleteCurrency: 'حذف هذه العملة؟ العملة المستخدمة في مستندات يتم تعطيلها بدلًا من حذفها.',
   },
   users: {
     title: 'المستخدمون', new: 'مستخدم جديد', edit: 'تعديل المستخدم', displayName: 'الاسم الظاهر', role: 'الدور', resetPassword: 'إعادة تعيين كلمة المرور',

@@ -1,6 +1,7 @@
 import { Card, Col, Descriptions, Row, Table, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BASE_CURRENCY } from '@fatoura/shared';
 import type { Schemas } from '../api/client';
 import { Ltr, Money } from './Ltr';
 import { formatDate, formatQty } from '../utils/format';
@@ -21,14 +22,18 @@ interface Props {
   subTotal: number;
   vatTotal: number;
   total: number;
+  /** Amounts are in this currency; another currency also shows the rate and the VAT and total in AED. */
+  currency?: Schemas['DocumentCurrencyDto'];
   terms?: Schemas['TermsDto'];
   extraColumns?: Array<{ title: string; render: (line: Line) => ReactNode }>;
 }
 
 /** Read-only view of a sales document, laid out like the printed version. */
-export function DocumentView({ number, date, client, info = [], lines, discount = 0, discountLabel, subTotal, vatTotal, total, terms, extraColumns = [] }: Props) {
+export function DocumentView({ number, date, client, info = [], lines, discount = 0, discountLabel, subTotal, vatTotal, total, currency, terms, extraColumns = [] }: Props) {
   const { t } = useTranslation();
   const hasDiscount = discount !== 0;
+  const code = currency?.code ?? BASE_CURRENCY;
+  const foreign = currency && code !== BASE_CURRENCY ? currency : null;
   return (
     <Card>
       <Row gutter={[24, 16]}>
@@ -44,6 +49,9 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
           <Descriptions column={1} size="small" items={[
             { key: 'number', label: t('doc.number'), children: <strong data-testid="doc-number"><Ltr>{number}</Ltr></strong> },
             { key: 'date', label: t('doc.date'), children: formatDate(date) },
+            ...(foreign
+              ? [{ key: 'rate', label: t('doc.currency'), children: <Ltr>{t('doc.rateInfo', { currency: foreign.code, rate: foreign.exchangeRate })}</Ltr> }]
+              : []),
             ...info.map((i, idx) => ({ key: `info-${idx}`, label: i.label, children: i.value })),
           ]} />
         </Col>
@@ -59,10 +67,10 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
           { title: 'Sl.No', dataIndex: 'lineNo', width: 60, align: 'center' },
           { title: t('doc.description'), dataIndex: 'description', render: (v: string) => <span style={{ whiteSpace: 'pre-wrap' }}>{v}</span> },
           { title: t('doc.qty'), dataIndex: 'quantity', className: 'num', render: (v: number) => <Ltr>{formatQty(v)}</Ltr> },
-          { title: t('doc.unitPrice'), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('doc.unitPriceIn', { currency: code }), dataIndex: 'unitPrice', className: 'num', render: (v: number) => <Money value={v} /> },
           ...(hasDiscount ? [{ title: t('doc.discount'), dataIndex: 'discount', className: 'num', render: (v: number) => <Money value={v} /> }] : []),
           { title: t('doc.vat'), dataIndex: 'vat', className: 'num', render: (v: number, l: Line) => <span title={t(`item.${l.taxCategory}`)}><Money value={v} /></span> },
-          { title: t('doc.amount'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('doc.amountIn', { currency: code }), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
           ...extraColumns.map((c, i) => ({ key: `extra-${i}`, title: c.title, className: 'num', render: (_: unknown, l: Line) => c.render(l) })),
         ]}
       />
@@ -81,7 +89,17 @@ export function DocumentView({ number, date, client, info = [], lines, discount 
                 ]
               : []),
             { key: 'vat', label: t('doc.vatTotal'), children: <Money value={vatTotal} /> },
-            { key: 'total', label: <strong>{t('doc.total')}</strong>, children: <span data-testid="doc-total"><Money value={total} strong /></span> },
+            {
+              key: 'total',
+              label: <strong>{foreign ? t('doc.totalIn', { currency: code }) : t('doc.total')}</strong>,
+              children: <span data-testid="doc-total"><Money value={total} strong /></span>,
+            },
+            ...(foreign
+              ? [
+                  { key: 'vatAed', label: t('doc.vatAed'), children: <span data-testid="doc-vat-aed"><Money value={foreign.vatTotalAed} /></span> },
+                  { key: 'totalAed', label: t('doc.totalAed'), children: <span data-testid="doc-total-aed"><Money value={foreign.totalAed} /></span> },
+                ]
+              : []),
           ]} />
         </Col>
       </Row>

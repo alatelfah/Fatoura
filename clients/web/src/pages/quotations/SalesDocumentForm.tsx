@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router';
 import { $api, fetchClient, type Schemas } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { ContactSelect } from '../../components/ClientSelect';
+import { CurrencyFields, fromCurrency, toCurrencyRequest, type CurrencyFormValue } from '../../components/CurrencyFields';
 import {
   DocumentLinesEditor,
   emptyLine,
@@ -24,7 +25,7 @@ import { isoDate } from '../../utils/format';
 
 type Mode = 'quotation' | 'invoice';
 
-interface FormValues {
+interface FormValues extends CurrencyFormValue {
   clientId: number;
   date?: Dayjs;
   validUntil?: Dayjs;
@@ -73,12 +74,14 @@ export function SalesDocumentForm({ mode, existing }: Props) {
         validUntil: 'validUntil' in existing ? dayjs(existing.validUntil) : undefined,
         lines: fromLines(existing.lines),
         discount: fromDiscount(existing.discount),
+        ...fromCurrency(existing.currency),
         ...existing.terms,
       });
     } else {
       form.setFieldsValue({
         lines: [{ ...emptyLine }],
         discount: { kind: 'None', value: null },
+        currency: 'AED',
         paymentTerms: settings.data.paymentTerms,
         completionOfWork: settings.data.completionOfWork,
         notes: settings.data.notes,
@@ -97,8 +100,9 @@ export function SalesDocumentForm({ mode, existing }: Props) {
       const terms = { paymentTerms: values.paymentTerms ?? '', completionOfWork: values.completionOfWork ?? '', notes: values.notes ?? '', closingText: values.closingText ?? '' };
       const linesBody = toLineRequests(values.lines);
       const discountBody = toDiscountRequest(values.discount);
+      const currencyBody = toCurrencyRequest(values);
       if (mode === 'quotation') {
-        const body = { clientId: values.clientId, date: isoDate(values.date) ?? null, validUntil: isoDate(values.validUntil) ?? null, lines: linesBody, terms, discount: discountBody };
+        const body = { clientId: values.clientId, date: isoDate(values.date) ?? null, validUntil: isoDate(values.validUntil) ?? null, lines: linesBody, terms, discount: discountBody, ...currencyBody };
         const { data, error } = existing
           ? await fetchClient.PUT('/api/quotations/{id}', { params: { path: { id: existing.id } }, body })
           : await fetchClient.POST('/api/quotations', { body });
@@ -121,11 +125,11 @@ export function SalesDocumentForm({ mode, existing }: Props) {
       let issued: Schemas['InvoiceResult'] | undefined;
       let failure: unknown;
       if (existing) {
-        const r = await fetchClient.PUT('/api/invoices/{id}', { params: { path: { id: existing.id } }, body: { clientId: values.clientId, date: isoDate(values.date)!, lines: linesBody, terms, discount: discountBody } });
+        const r = await fetchClient.PUT('/api/invoices/{id}', { params: { path: { id: existing.id } }, body: { clientId: values.clientId, date: isoDate(values.date)!, lines: linesBody, terms, discount: discountBody, ...currencyBody } });
         issued = r.data;
         failure = r.error;
       } else {
-        const r = await fetchClient.POST('/api/invoices', { body: { clientId: values.clientId, date: isAdmin ? (isoDate(values.date) ?? null) : null, lines: linesBody, terms, discount: discountBody, payment: payment && payment.amount > 0 ? payment : null } });
+        const r = await fetchClient.POST('/api/invoices', { body: { clientId: values.clientId, date: isAdmin ? (isoDate(values.date) ?? null) : null, lines: linesBody, terms, discount: discountBody, ...currencyBody, payment: payment && payment.amount > 0 ? payment : null } });
         issued = r.data;
         failure = r.error;
       }
@@ -151,23 +155,24 @@ export function SalesDocumentForm({ mode, existing }: Props) {
       <Form form={form} layout="vertical" onFinish={submit} scrollToFirstError>
         <Card style={{ marginBottom: 16 }}>
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={mode === 'quotation' ? 8 : 10}>
               <Form.Item name="clientId" label={t('doc.client')} rules={[{ required: true, message: t('common.required') }]}>
                 <ContactSelect placeholder={t('doc.client')} initialLabel={existing?.client.name} />
               </Form.Item>
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={mode === 'quotation' ? 3 : 4}>
               <Form.Item name="date" label={t('doc.date')} extra={mode === 'invoice' && !isAdmin ? t('invoice.cashierDateNote') : undefined}>
                 <DatePicker style={{ width: '100%' }} placeholder={t('doc.today')} disabled={mode === 'invoice' && !isAdmin} disabledDate={(d) => mode === 'invoice' && d.isAfter(dayjs(), 'day')} data-testid="document-date" />
               </Form.Item>
             </Col>
             {mode === 'quotation' && (
-              <Col xs={12} md={6}>
+              <Col xs={12} md={3}>
                 <Form.Item name="validUntil" label={t('doc.validUntil')}>
                   <DatePicker style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
             )}
+            <CurrencyFields form={form} existing={existing?.currency.code} />
           </Row>
         </Card>
         <Card title={t('doc.lines')} style={{ marginBottom: 16 }}>

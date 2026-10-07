@@ -15,6 +15,8 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
 
     public DbSet<NumberingSetting> NumberingSettings => Set<NumberingSetting>();
 
+    public DbSet<CurrencyRate> CurrencyRates => Set<CurrencyRate>();
+
     public DbSet<DocumentSequence> DocumentSequences => Set<DocumentSequence>();
 
     public DbSet<Client> Clients => Set<Client>();
@@ -82,6 +84,14 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
             e.Property(s => s.Emirate).HasConversion<string>().HaveMax(20);
         });
 
+        b.Entity<CurrencyRate>(e =>
+        {
+            e.HasKey(c => c.Code);
+            e.Property(c => c.Code).HaveMax(3);
+            e.Property(c => c.Name).HaveMax(100);
+            e.Property(c => c.RateToAed).HasPrecision(18, 6);
+        });
+
         b.Entity<NumberingSetting>(e =>
         {
             e.HasKey(n => n.DocumentType);
@@ -133,6 +143,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
 
         b.Entity<Quotation>(e =>
         {
+            ConfigureCurrency(e);
             e.Property(q => q.Number).HaveMax(40);
             e.HasIndex(q => q.Number).IsUnique();
             e.HasIndex(q => q.Date);
@@ -148,6 +159,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
 
         b.Entity<Invoice>(e =>
         {
+            ConfigureCurrency(e);
             e.Property(i => i.Number).HaveMax(40);
             e.HasIndex(i => i.Number).IsUnique();
             e.HasIndex(i => i.Date);
@@ -179,6 +191,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
 
         b.Entity<CreditNote>(e =>
         {
+            ConfigureCurrency(e);
             e.Property(c => c.Number).HaveMax(40);
             e.HasIndex(c => c.Number).IsUnique();
             e.HasIndex(c => c.Date);
@@ -196,6 +209,7 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
 
         b.Entity<PurchaseInvoice>(e =>
         {
+            ConfigureCurrency(e);
             e.Property(p => p.Number).HaveMax(40);
             e.HasIndex(p => p.Number).IsUnique();
             e.HasIndex(p => p.Date);
@@ -242,6 +256,13 @@ public sealed class FatouraDbContext(DbContextOptions<FatouraDbContext> options)
         e.Property<string>(nameof(IDocumentTerms.CompletionOfWork)).HaveMax(1000);
         e.Property<string>(nameof(IDocumentTerms.Notes)).HaveMax(4000);
         e.Property<string>(nameof(IDocumentTerms.ClosingText)).HaveMax(1000);
+    }
+
+    private static void ConfigureCurrency<T>(EntityTypeBuilder<T> e)
+        where T : class, ICurrencyDocument
+    {
+        e.Property(d => d.Currency).HaveMax(3);
+        e.Property(d => d.ExchangeRate).HasPrecision(18, 6);
     }
 
     private static void ConfigureDiscount<T>(EntityTypeBuilder<T> e)

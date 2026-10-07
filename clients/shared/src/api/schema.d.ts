@@ -795,6 +795,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/currencies/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CurrencyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/clients": {
         parameters: {
             query?: never;
@@ -2597,6 +2692,7 @@ export interface components {
             user: components["schemas"]["UserInfo"];
             refreshToken: null | string;
         };
+        /** @description Shift totals are in AED. */
         CashierDashboardDto: {
             /** Format: date */
             today: string;
@@ -2671,6 +2767,7 @@ export interface components {
             returnToStock: boolean;
             client: components["schemas"]["PartyDto"];
             company: components["schemas"]["CompanyDto"];
+            currency: components["schemas"]["DocumentCurrencyDto"];
             /** Format: double */
             discount: number;
             /** Format: double */
@@ -2747,12 +2844,42 @@ export interface components {
             invoiceId: number;
             invoiceNumber: string;
             clientName: string;
+            currency: string;
             /** Format: double */
             total: number;
             createdByName: string;
         };
+        /** @description A foreign currency and its rate in AED per unit. */
+        CurrencyDto: {
+            code: string;
+            name: string;
+            /** Format: double */
+            rateToAed: number;
+            isActive: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CurrencyRequest: {
+            name: string;
+            /** Format: double */
+            rateToAed: number;
+            /** @default true */
+            isActive: boolean;
+        };
         /** @enum {unknown} */
         DiscountKind: "None" | "Amount" | "Percent";
+        /** @description A document's currency, its rate (AED per unit) and its totals in AED, which reports and the VAT return use. */
+        DocumentCurrencyDto: {
+            code: string;
+            /** Format: double */
+            exchangeRate: number;
+            /** Format: double */
+            subTotalAed: number;
+            /** Format: double */
+            vatTotalAed: number;
+            /** Format: double */
+            totalAed: number;
+        };
         /** @description The discount as entered, and `Amount`, its value in money. The sub total before discount is `SubTotal + Amount`. */
         DocumentDiscountDto: {
             kind: components["schemas"]["DiscountKind"];
@@ -2835,6 +2962,7 @@ export interface components {
             voidedAt: null | string;
             terms: components["schemas"]["TermsDto"];
             discount: components["schemas"]["DocumentDiscountDto"];
+            currency: components["schemas"]["DocumentCurrencyDto"];
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -2898,6 +3026,7 @@ export interface components {
             clientId: number;
             clientName: string;
             status: components["schemas"]["InvoiceStatus"];
+            currency: string;
             /** Format: double */
             total: number;
             /** Format: double */
@@ -2917,6 +3046,9 @@ export interface components {
             terms: null | components["schemas"]["TermsRequest"];
             payment: null | components["schemas"]["PaymentRequest"];
             discount?: null | components["schemas"]["DocumentDiscountRequest"];
+            currency?: null | string;
+            /** Format: double */
+            exchangeRate?: null | number;
         };
         ItemDto: {
             /** Format: int32 */
@@ -3109,6 +3241,7 @@ export interface components {
             supplierId: number;
             supplier: components["schemas"]["PartyDto"];
             notes: string;
+            currency: components["schemas"]["DocumentCurrencyDto"];
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -3156,6 +3289,7 @@ export interface components {
             unitPrice: number;
             taxCategory: components["schemas"]["TaxCategory"];
         };
+        /** @description One purchase, in AED whatever its `Currency`. */
         PurchaseReportRow: {
             /** Format: int32 */
             id: number;
@@ -3164,6 +3298,7 @@ export interface components {
             /** Format: date */
             date: string;
             supplierName: string;
+            currency: string;
             /** Format: double */
             net: number;
             /** Format: double */
@@ -3179,6 +3314,9 @@ export interface components {
             date: string;
             notes: null | string;
             lines: components["schemas"]["PurchaseLineRequest"][];
+            currency?: null | string;
+            /** Format: double */
+            exchangeRate?: null | number;
         };
         PurchasesBySupplier: {
             /** Format: int32 */
@@ -3216,6 +3354,7 @@ export interface components {
             /** Format: int32 */
             supplierId: number;
             supplierName: string;
+            currency: string;
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -3241,6 +3380,7 @@ export interface components {
             convertedInvoiceNumber: null | string;
             terms: components["schemas"]["TermsDto"];
             discount: components["schemas"]["DocumentDiscountDto"];
+            currency: components["schemas"]["DocumentCurrencyDto"];
             /** Format: double */
             subTotal: number;
             /** Format: double */
@@ -3264,6 +3404,9 @@ export interface components {
             lines: components["schemas"]["DocumentLineRequest"][];
             terms: null | components["schemas"]["TermsRequest"];
             discount?: null | components["schemas"]["DocumentDiscountRequest"];
+            currency?: null | string;
+            /** Format: double */
+            exchangeRate?: null | number;
         };
         /** @enum {unknown} */
         QuotationStatus: "Draft" | "Sent" | "Accepted" | "Rejected" | "Converted";
@@ -3283,12 +3426,14 @@ export interface components {
             clientId: number;
             clientName: string;
             status: components["schemas"]["QuotationStatus"];
+            currency: string;
             /** Format: double */
             total: number;
             /** Format: int32 */
             convertedInvoiceId: null | number;
             createdByName: string;
         };
+        /** @description Total and balance are in the invoice's currency. */
         RecentInvoiceDto: {
             /** Format: int32 */
             id: number;
@@ -3296,6 +3441,7 @@ export interface components {
             /** Format: date */
             date: string;
             clientName: string;
+            currency: string;
             /** Format: double */
             total: number;
             /** Format: double */
@@ -3335,7 +3481,7 @@ export interface components {
             byCashier: components["schemas"]["SalesByCashier"][];
             rows: components["schemas"]["SalesReportRow"][];
         };
-        /** @description One sales document; credit notes carry negative amounts so rows sum to net sales. */
+        /** @description One sales document, in AED whatever its `Currency`; credit notes carry negative amounts so rows sum to net sales. */
         SalesReportRow: {
             kind: components["schemas"]["SalesDocumentKind"];
             /** Format: int32 */
@@ -3345,6 +3491,7 @@ export interface components {
             date: string;
             clientName: string;
             cashierName: string;
+            currency: string;
             /** Format: double */
             net: number;
             /** Format: double */
@@ -3453,6 +3600,7 @@ export interface components {
             notes: null | string;
             closingText: null | string;
         };
+        /** @description Omitting the currency or rate keeps the invoice's own. */
         UpdateInvoiceRequest: {
             /** Format: int32 */
             clientId: number;
@@ -3461,6 +3609,9 @@ export interface components {
             lines: components["schemas"]["DocumentLineRequest"][];
             terms: null | components["schemas"]["TermsRequest"];
             discount?: null | components["schemas"]["DocumentDiscountRequest"];
+            currency?: null | string;
+            /** Format: double */
+            exchangeRate?: null | number;
         };
         UpdateNumberingRequest: {
             documentType: components["schemas"]["DocumentType"];

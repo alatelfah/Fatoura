@@ -18,7 +18,7 @@ export default function PurchasesScreen() {
           <List.Item
             title={item.supplierName}
             description={`${item.number} · ${item.supplierInvoiceNo || '—'} · ${formatDate(item.date)}`}
-            right={() => <View style={{ justifyContent: 'center' }}><Money value={item.total} bold /></View>}
+            right={() => <View style={{ justifyContent: 'center' }}><Money value={item.total} currency={item.currency} bold /></View>}
           />
         )}
       />

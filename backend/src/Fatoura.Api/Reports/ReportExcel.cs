@@ -20,8 +20,8 @@ public static class ReportExcel
             ("Credit notes", s.CreditNoteCount), ("Credit notes net", s.CreditNotesNet), ("Credit notes VAT", s.CreditNotesVat),
             ("Credit notes total", s.CreditNotesTotal), ("Net sales (excl. VAT)", s.NetSales), ("Net VAT", s.NetVat), ("Net total", s.NetTotal),
         ]);
-        row = Table(ws, row + 1, ["Type", "Number", "Date", "Client", "Cashier", "Net (AED)", "VAT (AED)", "Total (AED)"],
-            r.Rows.Select(x => new object[] { x.Kind == SalesDocumentKind.Invoice ? "Invoice" : "Credit note", x.Number, x.Date, x.ClientName, x.CashierName, x.Net, x.Vat, x.Total }), [6, 7, 8]);
+        row = Table(ws, row + 1, ["Type", "Number", "Date", "Client", "Cashier", "Currency", "Net (AED)", "VAT (AED)", "Total (AED)"],
+            r.Rows.Select(x => new object[] { x.Kind == SalesDocumentKind.Invoice ? "Invoice" : "Credit note", x.Number, x.Date, x.ClientName, x.CashierName, x.Currency, x.Net, x.Vat, x.Total }), [7, 8, 9]);
         Table(ws, row + 1, ["Cashier", "Invoices", "Net (AED)", "VAT (AED)", "Total (AED)"],
             r.ByCashier.Select(x => new object[] { x.CashierName, x.InvoiceCount, x.Net, x.Vat, x.Total }), [3, 4, 5]);
         return Save(wb, ws);
@@ -32,8 +32,8 @@ public static class ReportExcel
         using var wb = new XLWorkbook();
         var ws = Sheet(wb, "Purchases", "Purchases Report", company, r.Period);
         var row = Summary(ws, 5, [("Purchases", r.Count), ("Net", r.Net), ("VAT (input)", r.Vat), ("Total", r.Total)]);
-        row = Table(ws, row + 1, ["Number", "Supplier invoice", "Date", "Supplier", "Net (AED)", "VAT (AED)", "Total (AED)"],
-            r.Rows.Select(x => new object[] { x.Number, x.SupplierInvoiceNo, x.Date, x.SupplierName, x.Net, x.Vat, x.Total }), [5, 6, 7]);
+        row = Table(ws, row + 1, ["Number", "Supplier invoice", "Date", "Supplier", "Currency", "Net (AED)", "VAT (AED)", "Total (AED)"],
+            r.Rows.Select(x => new object[] { x.Number, x.SupplierInvoiceNo, x.Date, x.SupplierName, x.Currency, x.Net, x.Vat, x.Total }), [6, 7, 8]);
         Table(ws, row + 1, ["Supplier", "Purchases", "Net (AED)", "VAT (AED)", "Total (AED)"],
             r.BySupplier.Select(x => new object[] { x.SupplierName, x.Count, x.Net, x.Vat, x.Total }), [3, 4, 5]);
         return Save(wb, ws);

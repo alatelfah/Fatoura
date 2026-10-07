@@ -155,6 +155,7 @@ api.MapGet("/health", () => TypedResults.Ok(new HealthResponse("ok"))).AllowAnon
 api.MapAuthEndpoints();
 api.MapUserEndpoints();
 api.MapSettingsEndpoints();
+api.MapCurrencyEndpoints();
 api.MapClientEndpoints();
 api.MapSupplierEndpoints();
 api.MapItemEndpoints();

@@ -30,7 +30,7 @@ export default function InvoicesScreen() {
             onPress={() => router.push(`/invoice/${item.id}`)}
             right={() => (
               <View style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 4 }}>
-                <Money value={item.total} bold />
+                <Money value={item.total} currency={item.currency} bold />
                 {item.status === 'Void' ? <StatusChip label={t('invoice.Void')} color="#c62828" /> : item.balance > 0 ? <StatusChip label={t('doc.balance')} color="#ef6c00" /> : <StatusChip label={t('invoice.paidInFull')} color="#2e7d32" />}
               </View>
             )}

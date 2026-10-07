@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { $api, downloadFile, fetchClient, uploadFile } from '../../api/client';
 import { ContactSelect } from '../../components/ClientSelect';
+import { CurrencyFields, fromCurrency, toCurrencyRequest, type CurrencyFormValue } from '../../components/CurrencyFields';
 import { DocumentLinesEditor, emptyLine, type LineFormValue } from '../../components/DocumentLinesEditor';
 import { DocumentView } from '../../components/DocumentView';
 import { Ltr, Money } from '../../components/Ltr';
@@ -45,14 +46,14 @@ export function PurchasesPage() {
           { title: t('doc.supplier'), dataIndex: 'supplierName' },
           { title: t('reports.net'), dataIndex: 'subTotal', className: 'num', render: (v: number) => <Money value={v} /> },
           { title: t('reports.vatAmount'), dataIndex: 'vatTotal', className: 'num', render: (v: number) => <Money value={v} /> },
-          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number) => <Money value={v} /> },
+          { title: t('common.total'), dataIndex: 'total', className: 'num', render: (v: number, r) => <Money value={v} currency={r.currency} /> },
         ]}
       />
     </>
   );
 }
 
-interface PurchaseForm {
+interface PurchaseForm extends CurrencyFormValue {
   supplierId: number;
   supplierInvoiceNo?: string;
   date: Dayjs;
@@ -73,7 +74,7 @@ export function PurchaseFormPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (id === null) form.setFieldsValue({ date: dayjs(), lines: [{ ...emptyLine }] });
+    if (id === null) form.setFieldsValue({ date: dayjs(), currency: 'AED', lines: [{ ...emptyLine }] });
     else if (existing.data) {
       const p = existing.data;
       form.setFieldsValue({
@@ -81,6 +82,7 @@ export function PurchaseFormPage() {
         supplierInvoiceNo: p.supplierInvoiceNo,
         date: dayjs(p.date),
         notes: p.notes,
+        ...fromCurrency(p.currency),
         lines: p.lines.map((l) => ({ itemId: l.itemId ?? null, description: l.description, expenseCategory: l.expenseCategory, quantity: l.quantity, unitPrice: l.unitPrice, taxCategory: l.taxCategory })),
       });
     }
@@ -96,6 +98,7 @@ export function PurchaseFormPage() {
         supplierInvoiceNo: v.supplierInvoiceNo ?? null,
         date: isoDate(v.date)!,
         notes: v.notes ?? null,
+        ...toCurrencyRequest(v),
         lines: v.lines.map((l) => ({
           itemId: l.itemId ?? null,
           description: (l.description ?? '').trim(),
@@ -123,21 +126,22 @@ export function PurchaseFormPage() {
       <Form form={form} layout="vertical" onFinish={submit}>
         <Card style={{ marginBottom: 16 }}>
           <Row gutter={16}>
-            <Col xs={24} md={10}>
+            <Col xs={24} md={8}>
               <Form.Item name="supplierId" label={t('doc.supplier')} rules={[{ required: true, message: t('common.required') }]}>
                 <ContactSelect kind="suppliers" initialLabel={existing.data?.supplier.name} />
               </Form.Item>
             </Col>
-            <Col xs={12} md={7}>
+            <Col xs={12} md={3}>
               <Form.Item name="supplierInvoiceNo" label={t('purchase.supplierInvoiceNo')}>
                 <Input maxLength={60} dir="ltr" />
               </Form.Item>
             </Col>
-            <Col xs={12} md={7}>
+            <Col xs={12} md={3}>
               <Form.Item name="date" label={t('doc.date')} rules={[{ required: true, message: t('common.required') }]}>
                 <DatePicker style={{ width: '100%' }} disabledDate={(d) => d.isAfter(dayjs(), 'day')} />
               </Form.Item>
             </Col>
+            <CurrencyFields form={form} existing={existing.data?.currency.code} />
           </Row>
         </Card>
         <Card title={t('doc.lines')} style={{ marginBottom: 16 }}>
@@ -205,6 +209,7 @@ export function PurchaseViewPage() {
         subTotal={p.subTotal}
         vatTotal={p.vatTotal}
         total={p.total}
+        currency={p.currency}
       />
     </>
   );

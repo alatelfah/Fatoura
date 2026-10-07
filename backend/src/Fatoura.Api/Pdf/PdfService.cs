@@ -50,7 +50,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
 
         var doc = new PrintDocument(
             "Tax Invoice", "Invoice No:", i.Number, i.Date, Company(i.CompanySnapshot, settings), Party(i.ClientSnapshot), extra,
-            Lines(i.Lines), i.Discount, i.SubTotal, VatLabel(settings.VatRate), i.VatTotal, i.Total, Terms(i), i.Status == InvoiceStatus.Void);
+            Lines(i.Lines), i.Discount, i.SubTotal, VatLabel(settings.VatRate), i.VatTotal, i.Total, Terms(i), i.Status == InvoiceStatus.Void, Currency(i));
         return (Render(doc), FileName("Invoice", i.Number));
     }
 
@@ -62,7 +62,7 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
         var doc = new PrintDocument(
             "Quotation", "Quotation No:", q.Number, q.Date, Company(CompanySnapshot.From(settings), settings), Party(q.ClientSnapshot),
             [new PrintInfo("Valid Until:", SalesDocumentPdf.Date(q.ValidUntil))],
-            Lines(q.Lines), q.Discount, q.SubTotal, VatLabel(settings.VatRate), q.VatTotal, q.Total, Terms(q), IsVoid: false);
+            Lines(q.Lines), q.Discount, q.SubTotal, VatLabel(settings.VatRate), q.VatTotal, q.Total, Terms(q), IsVoid: false, Currency(q));
         return (Render(doc), FileName("Quotation", q.Number));
     }
 
@@ -81,9 +81,12 @@ public sealed class PdfService(FatouraDbContext db, SettingsService settingsServ
         var terms = new PrintTerms(string.Empty, string.Empty, [], $"Reason: {c.Reason}");
         var doc = new PrintDocument(
             "Tax Credit Note", "Credit Note No:", c.Number, c.Date, Company(c.CompanySnapshot, settings), Party(c.ClientSnapshot), extra,
-            Lines(c.Lines), c.Discount, c.SubTotal, VatLabel(settings.VatRate), c.VatTotal, c.Total, terms, IsVoid: false);
+            Lines(c.Lines), c.Discount, c.SubTotal, VatLabel(settings.VatRate), c.VatTotal, c.Total, terms, IsVoid: false, Currency(c));
         return (Render(doc), FileName("CreditNote", c.Number));
     }
+
+    private static PrintCurrency? Currency(ICurrencyDocument d) =>
+        d.Currency == Domain.Documents.CurrencyConverter.Base ? null : new PrintCurrency(d.Currency, d.ExchangeRate, d.VatTotalAed, d.TotalAed);
 
     public static string VatLabel(decimal rate) => $"VAT {(rate * 100).ToString("0.##", CultureInfo.InvariantCulture)}%";
 

@@ -3,7 +3,8 @@
 Fatoura covers a UAE business's day-to-day trading in a web app and a mobile app:
 - clients and suppliers
 - products and services, with stock tracking
-- quotations, tax invoices and tax credit notes
+- quotations, tax invoices and tax credit notes, with an optional discount on the whole document
+- documents in AED or another currency (rates kept in Settings); reports and the VAT return stay in AED
 - purchases
 - financial reports: Sales, Purchases, Profit & Loss, and a VAT 201-style return
 
@@ -42,6 +43,7 @@ Open http://localhost:8080 and sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` fro
 
 Then:
 1. Fill in **Settings → Company**: name, address, TRN, logo and stamp. Documents cannot be issued until the name, address and TRN are set.
+   To issue documents in other currencies, add them with their AED rates under **Settings → Currencies**.
 2. Add cashiers under **Users**.
 
 > In production, serve the site over **HTTPS**. The session cookie is `Secure`, so browsers accept it only over HTTPS, or over plain HTTP on `localhost`.
@@ -109,7 +111,7 @@ npx expo export -p web --output-dir dist && npx playwright test   # smoke test o
 ```
 
 What the tests cover:
-- The VAT calculator, TRN rule and numbering are tested in C# and TypeScript against the **same** JSON fixtures in `spec/`.
+- The VAT calculator (including discounts and currency conversion), TRN rule and numbering are tested in C# and TypeScript against the **same** JSON fixtures in `spec/`.
 - The reference invoice must total 46,000.00 + 2,300.00 VAT = 48,300.00.
 - `spec/report-scenario.json` replays a hand-computed month through the API and checks every Sales, Purchases, P&L and VAT figure.
 - 50 concurrent invoice issues must get gap-free numbers 1..50.

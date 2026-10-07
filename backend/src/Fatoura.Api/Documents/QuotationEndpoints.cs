@@ -23,6 +23,7 @@ public sealed record QuotationDto(
     string? ConvertedInvoiceNumber,
     TermsDto Terms,
     DocumentDiscountDto Discount,
+    DocumentCurrencyDto Currency,
     decimal SubTotal,
     decimal VatTotal,
     decimal Total,
@@ -40,6 +41,7 @@ public sealed record QuotationSummaryDto(
     int ClientId,
     string ClientName,
     QuotationStatus Status,
+    string Currency,
     decimal Total,
     int? ConvertedInvoiceId,
     string CreatedByName);
@@ -50,7 +52,9 @@ public sealed record QuotationRequest(
     DateOnly? ValidUntil,
     List<DocumentLineRequest> Lines,
     TermsRequest? Terms,
-    DocumentDiscountRequest? Discount = null);
+    DocumentDiscountRequest? Discount = null,
+    [property: System.ComponentModel.DataAnnotations.MaxLength(3)] string? Currency = null,
+    decimal? ExchangeRate = null);
 
 public sealed record QuotationStatusRequest(QuotationStatus Status);
 
@@ -80,7 +84,7 @@ public static class QuotationEndpoints
             : null;
         return new QuotationDto(
             q.Id, q.Number, q.Date, q.ValidUntil, IsExpired(q, clock.Today), q.ClientId, q.ClientSnapshot.ToDto(), q.Status,
-            q.ConvertedInvoiceId, invoiceNumber, q.Terms(), q.DiscountDto(), q.SubTotal, q.VatTotal, q.Total, q.CreatedById,
+            q.ConvertedInvoiceId, invoiceNumber, q.Terms(), q.DiscountDto(), q.CurrencyDto(), q.SubTotal, q.VatTotal, q.Total, q.CreatedById,
             q.CreatedBy?.DisplayName ?? string.Empty, q.CreatedAt, q.Lines.OrderBy(l => l.LineNo).Select(l => l.ToDto()).ToList());
     }
 
@@ -138,7 +142,7 @@ public static class QuotationEndpoints
             .Select(x => new QuotationSummaryDto(
                 x.Id, x.Number, x.Date, x.ValidUntil,
                 x.Status != QuotationStatus.Converted && x.Status != QuotationStatus.Rejected && x.ValidUntil < today,
-                x.ClientId, x.ClientSnapshot.Name, x.Status, x.Total, x.ConvertedInvoiceId, x.CreatedBy!.DisplayName))
+                x.ClientId, x.ClientSnapshot.Name, x.Status, x.Currency, x.Total, x.ConvertedInvoiceId, x.CreatedBy!.DisplayName))
             .ToPagedAsync(page, pageSize, ct);
         return TypedResults.Ok(result);
     }
@@ -159,6 +163,7 @@ public static class QuotationEndpoints
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct);
         DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
+        var currency = await CurrencyEndpoints.ResolveAsync(db, r.Currency, r.ExchangeRate, v, ct);
         v.ThrowIfInvalid();
 
         var id = await db.InTransactionAsync(async () =>
@@ -183,6 +188,7 @@ public static class QuotationEndpoints
             ValidateDates(q.Date, q.ValidUntil);
             q.ApplyTerms(r.Terms, settings);
             q.Build(r.Lines, r.Discount, settings.VatRate, q.Lines);
+            q.ApplyCurrency(currency, q.Lines);
             db.Quotations.Add(q);
             await db.SaveChangesAsync(ct);
             return q.Id;
@@ -204,6 +210,8 @@ public static class QuotationEndpoints
         var v = new FieldValidator();
         await DocumentLines.ValidateAsync(r.Lines, db, v, ct, allowInactiveItems: true);
         DocumentLines.ValidateDiscount(r.Discount, r.Lines, v);
+        var existing = await db.Quotations.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Quotation");
+        var currency = await CurrencyEndpoints.ResolveAsync(db, r.Currency, r.ExchangeRate, v, ct, existing);
         v.ThrowIfInvalid();
 
         await db.InTransactionAsync(async () =>
@@ -222,6 +230,7 @@ public static class QuotationEndpoints
             db.QuotationLines.RemoveRange(q.Lines);
             var lines = new List<QuotationLine>();
             q.Build(r.Lines, r.Discount, settings.VatRate, lines);
+            q.ApplyCurrency(currency, lines);
             q.Lines = lines;
             q.UpdatedAt = time.GetUtcNow();
             await db.SaveChangesAsync(ct);
@@ -276,9 +285,11 @@ public static class QuotationEndpoints
             await DocumentLines.ValidateAsync(lines, db, v, ct);
             v.ThrowIfInvalid();
 
+            // The invoice is in the quotation's currency at today's rate (the rate on the date of supply).
             var terms = new TermsRequest(q.PaymentTerms, q.CompletionOfWork, q.Notes, q.ClosingText);
+            var currency = await CurrencyEndpoints.CurrentAsync(db, q.Currency, q.ExchangeRate, ct);
             var (invoice, w) = await invoices.IssueAsync(
-                new IssueInvoiceCommand(q.ClientId, clock.Today, lines, terms, q.DiscountRequest(), q.Id, q.Number, r?.Payment), ct);
+                new IssueInvoiceCommand(q.ClientId, clock.Today, lines, terms, q.DiscountRequest(), currency, q.Id, q.Number, r?.Payment), ct);
             q.Status = QuotationStatus.Converted;
             q.ConvertedInvoiceId = invoice.Id;
             q.UpdatedAt = time.GetUtcNow();

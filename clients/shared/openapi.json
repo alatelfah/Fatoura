@@ -613,6 +613,87 @@
         }
       }
     },
+    "/api/settings/currencies": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CurrencyDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings/currencies/{code}": {
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrencyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrencyDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/clients": {
       "get": {
         "tags": [
@@ -2735,7 +2816,8 @@
               "$ref": "#/components/schemas/RecentInvoiceDto"
             }
           }
-        }
+        },
+        "description": "Shift totals are in AED."
       },
       "ChangePasswordRequest": {
         "required": [
@@ -2940,6 +3022,7 @@
           "returnToStock",
           "client",
           "company",
+          "currency",
           "discount",
           "subTotal",
           "vatTotal",
@@ -2984,6 +3067,9 @@
           },
           "company": {
             "$ref": "#/components/schemas/CompanyDto"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/DocumentCurrencyDto"
           },
           "discount": {
             "type": "number",
@@ -3184,6 +3270,7 @@
           "invoiceId",
           "invoiceNumber",
           "clientName",
+          "currency",
           "total",
           "createdByName"
         ],
@@ -3210,6 +3297,9 @@
           "clientName": {
             "type": "string"
           },
+          "currency": {
+            "type": "string"
+          },
           "total": {
             "type": "number",
             "format": "double"
@@ -3219,12 +3309,95 @@
           }
         }
       },
+      "CurrencyDto": {
+        "required": [
+          "code",
+          "name",
+          "rateToAed",
+          "isActive",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rateToAed": {
+            "type": "number",
+            "format": "double"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "A foreign currency and its rate in AED per unit."
+      },
+      "CurrencyRequest": {
+        "required": [
+          "name",
+          "rateToAed"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "rateToAed": {
+            "type": "number",
+            "format": "double"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
       "DiscountKind": {
         "enum": [
           "None",
           "Amount",
           "Percent"
         ]
+      },
+      "DocumentCurrencyDto": {
+        "required": [
+          "code",
+          "exchangeRate",
+          "subTotalAed",
+          "vatTotalAed",
+          "totalAed"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "subTotalAed": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatTotalAed": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalAed": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "description": "A document's currency, its rate (AED per unit) and its totals in AED, which reports and the VAT return use."
       },
       "DocumentDiscountDto": {
         "required": [
@@ -3432,6 +3605,7 @@
           "voidedAt",
           "terms",
           "discount",
+          "currency",
           "subTotal",
           "vatTotal",
           "total",
@@ -3496,6 +3670,9 @@
           },
           "discount": {
             "$ref": "#/components/schemas/DocumentDiscountDto"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/DocumentCurrencyDto"
           },
           "subTotal": {
             "type": "number",
@@ -3657,6 +3834,7 @@
           "clientId",
           "clientName",
           "status",
+          "currency",
           "total",
           "paidTotal",
           "creditedTotal",
@@ -3685,6 +3863,9 @@
           },
           "status": {
             "$ref": "#/components/schemas/InvoiceStatus"
+          },
+          "currency": {
+            "type": "string"
           },
           "total": {
             "type": "number",
@@ -3763,6 +3944,20 @@
                 "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
+          },
+          "currency": {
+            "maxLength": 3,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exchangeRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -4371,6 +4566,7 @@
           "supplierId",
           "supplier",
           "notes",
+          "currency",
           "subTotal",
           "vatTotal",
           "total",
@@ -4404,6 +4600,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/DocumentCurrencyDto"
           },
           "subTotal": {
             "type": "number",
@@ -4554,6 +4753,7 @@
           "supplierInvoiceNo",
           "date",
           "supplierName",
+          "currency",
           "net",
           "vat",
           "total"
@@ -4577,6 +4777,9 @@
           "supplierName": {
             "type": "string"
           },
+          "currency": {
+            "type": "string"
+          },
           "net": {
             "type": "number",
             "format": "double"
@@ -4589,7 +4792,8 @@
             "type": "number",
             "format": "double"
           }
-        }
+        },
+        "description": "One purchase, in AED whatever its `Currency`."
       },
       "PurchaseRequest": {
         "required": [
@@ -4628,6 +4832,20 @@
             "items": {
               "$ref": "#/components/schemas/PurchaseLineRequest"
             }
+          },
+          "currency": {
+            "maxLength": 3,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exchangeRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -4720,6 +4938,7 @@
           "date",
           "supplierId",
           "supplierName",
+          "currency",
           "subTotal",
           "vatTotal",
           "total"
@@ -4745,6 +4964,9 @@
             "format": "int32"
           },
           "supplierName": {
+            "type": "string"
+          },
+          "currency": {
             "type": "string"
           },
           "subTotal": {
@@ -4775,6 +4997,7 @@
           "convertedInvoiceNumber",
           "terms",
           "discount",
+          "currency",
           "subTotal",
           "vatTotal",
           "total",
@@ -4831,6 +5054,9 @@
           },
           "discount": {
             "$ref": "#/components/schemas/DocumentDiscountDto"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/DocumentCurrencyDto"
           },
           "subTotal": {
             "type": "number",
@@ -4916,6 +5142,20 @@
                 "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
+          },
+          "currency": {
+            "maxLength": 3,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exchangeRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -4949,6 +5189,7 @@
           "clientId",
           "clientName",
           "status",
+          "currency",
           "total",
           "convertedInvoiceId",
           "createdByName"
@@ -4983,6 +5224,9 @@
           "status": {
             "$ref": "#/components/schemas/QuotationStatus"
           },
+          "currency": {
+            "type": "string"
+          },
           "total": {
             "type": "number",
             "format": "double"
@@ -5005,6 +5249,7 @@
           "number",
           "date",
           "clientName",
+          "currency",
           "total",
           "balance",
           "status"
@@ -5025,6 +5270,9 @@
           "clientName": {
             "type": "string"
           },
+          "currency": {
+            "type": "string"
+          },
           "total": {
             "type": "number",
             "format": "double"
@@ -5036,7 +5284,8 @@
           "status": {
             "$ref": "#/components/schemas/InvoiceStatus"
           }
-        }
+        },
+        "description": "Total and balance are in the invoice's currency."
       },
       "RefreshRequest": {
         "required": [
@@ -5161,6 +5410,7 @@
           "date",
           "clientName",
           "cashierName",
+          "currency",
           "net",
           "vat",
           "total"
@@ -5187,6 +5437,9 @@
           "cashierName": {
             "type": "string"
           },
+          "currency": {
+            "type": "string"
+          },
           "net": {
             "type": "number",
             "format": "double"
@@ -5200,7 +5453,7 @@
             "format": "double"
           }
         },
-        "description": "One sales document; credit notes carry negative amounts so rows sum to net sales."
+        "description": "One sales document, in AED whatever its `Currency`; credit notes carry negative amounts so rows sum to net sales."
       },
       "SalesSummary": {
         "required": [
@@ -5589,8 +5842,23 @@
                 "$ref": "#/components/schemas/DocumentDiscountRequest"
               }
             ]
+          },
+          "currency": {
+            "maxLength": 3,
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "exchangeRate": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
-        }
+        },
+        "description": "Omitting the currency or rate keeps the invoice's own."
       },
       "UpdateNumberingRequest": {
         "required": [

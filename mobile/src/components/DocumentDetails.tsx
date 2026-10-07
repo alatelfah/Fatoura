@@ -8,7 +8,7 @@ import { Ltr, Money, Row } from './ui';
 type Line = { id: number; lineNo: number; description: string; quantity: number; unitPrice: number; discount?: number; vat: number; total: number };
 
 /** Read-only document summary: header, client, lines and totals. */
-export function DocumentDetails({ number, date, client, lines, discount = 0, subTotal, vatTotal, total, extra }: {
+export function DocumentDetails({ number, date, client, lines, discount = 0, subTotal, vatTotal, total, currency, extra }: {
   number: string;
   date: string;
   client: Schemas['PartyDto'];
@@ -18,15 +18,19 @@ export function DocumentDetails({ number, date, client, lines, discount = 0, sub
   subTotal: number;
   vatTotal: number;
   total: number;
+  /** Amounts are in this currency; another currency also shows the rate and the VAT and total in AED. */
+  currency?: Schemas['DocumentCurrencyDto'];
   extra?: Array<[string, React.ReactNode]>;
 }) {
   const { t } = useTranslation();
+  const foreign = currency && currency.code !== 'AED' ? currency : null;
   return (
     <>
       <Card>
         <Card.Content>
           <Row label={t('doc.number')}><Ltr bold>{number}</Ltr></Row>
           <Row label={t('doc.date')}>{formatDate(date)}</Row>
+          {foreign && <Row label={t('doc.currency')}><Ltr>{t('doc.rateInfo', { currency: foreign.code, rate: foreign.exchangeRate })}</Ltr></Row>}
           {extra?.map(([label, value]) => <Row key={label} label={label}>{value}</Row>)}
           <Divider style={{ marginVertical: 8 }} />
           <Text variant="titleMedium">{client.name}</Text>
@@ -54,7 +58,13 @@ export function DocumentDetails({ number, date, client, lines, discount = 0, sub
             </>
           )}
           <Row label={t('doc.vatTotal')}><Money value={vatTotal} /></Row>
-          <Row label={t('doc.total')}><Money value={total} bold testID="doc-total" /></Row>
+          <Row label={foreign ? t('doc.totalIn', { currency: foreign.code }) : t('doc.total')}><Money value={total} bold testID="doc-total" /></Row>
+          {foreign && (
+            <>
+              <Row label={t('doc.vatAed')}><Money value={foreign.vatTotalAed} /></Row>
+              <Row label={t('doc.totalAed')}><Money value={foreign.totalAed} /></Row>
+            </>
+          )}
         </Card.Content>
       </Card>
     </>

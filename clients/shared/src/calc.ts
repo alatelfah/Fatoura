@@ -184,3 +184,23 @@ export function formatMoney(value: Decimalish): string {
 export function toNumber(value: Big): number {
   return Number(value.toFixed(2));
 }
+
+/** The base currency: reports and the VAT return are in AED. */
+export const BASE_CURRENCY = 'AED';
+
+export interface AedTotals {
+  subTotal: Big;
+  vatTotal: Big;
+  total: Big;
+}
+
+/**
+ * AED equivalents of a document's totals, mirrored from backend `CurrencyConverter`:
+ * Sub Total (AED) = round2(Sub Total × rate), VAT (AED) = round2(Total VAT × rate). The rate is AED per unit.
+ */
+export function toAed(totals: Pick<DocumentTotals, 'subTotal' | 'vatTotal'>, rate: Decimalish): AedTotals {
+  const r = new Big(rate);
+  const subTotal = roundMoney(totals.subTotal.times(r));
+  const vatTotal = roundMoney(totals.vatTotal.times(r));
+  return { subTotal, vatTotal, total: subTotal.plus(vatTotal) };
+}

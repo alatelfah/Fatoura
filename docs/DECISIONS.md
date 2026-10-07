@@ -43,6 +43,23 @@ The product owner made the decisions marked **(owner)**. The others are the impl
 - **Purchases** have no discount field: enter supplier invoices at their net prices.
 - Fixtures for the discount math are in `spec/calc-cases.json`, shared by the C# and TypeScript tests.
 
+## Currencies
+- **(owner)** AED is the base currency. An Admin keeps a table of other currencies and their rates (**AED per 1 unit**, up to 6 decimals) under **Settings → Currencies**.
+- **Rate on the document:** a quotation, invoice or purchase can be in AED or any active currency. The current rate is copied onto the document when it is created and can be changed there. Changing a rate in Settings never alters existing documents.
+- **AED equivalents:** amounts are stored in the document's currency, with their AED equivalents alongside:
+  - `Sub Total (AED) = round2(Sub Total × rate)`
+  - `VAT (AED) = round2(Total VAT × rate)`
+  - `Total (AED) = Sub Total (AED) + VAT (AED)`
+  - These AED totals are spread back over the lines, in the same way as the discount, so the VAT return's per-category figures add up to the documents.
+- **What is in AED:** reports, the dashboard, the VAT return and stock costs. A purchase in USD costs its items in AED.
+- **What stays in the document's currency:** payments and balances.
+- **Printed:** a document in another currency prints its amounts in that currency, plus the exchange rate and the **VAT and total in AED**. UAE tax invoices issued in a foreign currency must state the VAT amount in AED.
+- **Conversion** of a quotation keeps its currency at **today's rate**, because an invoice uses the rate on the date of supply. If the currency has since been deactivated, the quotation's own rate is used.
+- **Credit notes** use their invoice's currency and rate, because they adjust that supply.
+- **Edits:** an Admin edit that leaves out the currency keeps the document's currency and rate.
+- **Deleting a currency:** a currency used on any document is deactivated instead of deleted. It then can't be picked for new documents, but documents that already use it keep it.
+- Fixtures for the conversion math are in `spec/currency-cases.json`.
+
 ## TRN validation
 - **Rule:** a TRN must be exactly 15 digits **starting with "10"**. Spaces and dashes are ignored.
 - **Why not "100":** the BRD says TRNs "usually start with 100". But both TRNs in the reference invoice (`105386581000003` for the company, `105325228200003` for the client) start with `105`, so requiring `100` would reject real, valid TRNs.
@@ -100,7 +117,8 @@ The product owner made the decisions marked **(owner)**. The others are the impl
 - **Same PDF everywhere:** the web and mobile apps both download the PDF from the server, so every copy is identical.
 
 ## Out of scope for v1
-- Multi-currency, and FTA e-invoicing (PINT-AE through an accredited provider).
+- **(owner, deferred)** FTA e-invoicing (PINT-AE through an accredited provider).
+- Automatic exchange-rate feeds: rates are kept by hand in Settings.
 - **(owner)** Settings and user management stay web-only. The mobile app covers daily operations, the dashboard and read-only reports.
 
 ## Implementation details
